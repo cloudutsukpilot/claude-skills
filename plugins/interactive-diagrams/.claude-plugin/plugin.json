@@ -1,0 +1,13 @@
+{
+  "name": "interactive-diagrams",
+  "version": "1.0.0",
+  "description": "Explorable architecture diagrams as self-contained HTML pages, in three tiers: structure (level 1), connections (level 2), stories (level 3).",
+  "author": {
+    "name": "Sakharam Shinde",
+    "url": "https://github.com/cloudutsukpilot"
+  },
+  "homepage": "https://github.com/cloudutsukpilot/claude-skills/tree/main/plugins/interactive-diagrams",
+  "repository": "https://github.com/cloudutsukpilot/claude-skills",
+  "license": "MIT",
+  "keywords": ["diagram", "architecture", "c4", "interactive", "elk", "visualization"]
+}
