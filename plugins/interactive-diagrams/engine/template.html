@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<link rel="stylesheet" href="{{FONT_AWESOME}}" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+/* Host colours the engine derives its palette from. To embed the diagram in another site, set these
+   three variables there (light and dark) instead. */
+:root {
+  --dgm-host-bg: #ffffff;
+  --dgm-host-text: #34343c;
+  --dgm-host-heading: #1f2328;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) {
+    --dgm-host-bg: #1b1b1e;
+    --dgm-host-text: #afb0b1;
+    --dgm-host-heading: #d4d4d6;
+    color-scheme: dark;
+  }
+}
+:root[data-mode="dark"] {
+  --dgm-host-bg: #1b1b1e;
+  --dgm-host-text: #afb0b1;
+  --dgm-host-heading: #d4d4d6;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--dgm-host-bg);
+  color: var(--dgm-host-text);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+main { max-width: 1440px; margin: 0 auto; padding: 16px; }
+h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
+.page-lead { margin: 0.25rem 0 0; max-width: 70ch; }
+.page-lead:empty { display: none; }
+{{CSS}}
+</style>
+</head>
+<body>
+<main>
+<h1>{{TITLE}}</h1>
+<p class="page-lead">{{DESCRIPTION}}</p>
+{{FIGURE}}
+</main>
+<script>
+{{JS}}
+</script>
+</body>
+</html>

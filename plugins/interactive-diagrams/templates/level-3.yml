@@ -1,0 +1,105 @@
+# Level 3 starter: structure + connections + stories. Copy to diagrams/<name>/diagram.yml and replace every <…>.
+# Rules: reference/structure.md + connections.md + stories.md · keys: reference/data-format.md
+title: <System name>
+description: "<One sentence: what the system does and for whom.>"
+level: 1
+
+views:
+  - {id: observability, label: Observability, icon: chart}
+
+certs:
+  pub-frontend:
+    label: <public hostname>
+    type: public
+    by: "<Who presents it: the load balancer, the ingress (TLS ends there)>"
+    issuer: "<CA chain; how it is issued (ACME, managed)>"
+    valid: "<Lifetime; who renews it>"
+    trust: "<Why the client accepts it>"
+  pub-external:
+    label: <external API hostname>
+    type: public
+    by: "<The provider's API>"
+    issuer: "<The provider's public CA>"
+    valid: "Managed by the provider"
+    trust: "Public chain in the backend's CA bundle"
+levels: [Context, Containers]   # one name per level; add one per extra layer of children
+
+nodes:
+  - id: user
+    label: <User>
+    icon: user
+    status: external
+    facts:
+      summary: "<Who they are and what they come to the system for.>"
+      how: "<How they reach it: browser, CLI, app.>"
+      api: "None of its own: <what they use>"
+
+  - id: system
+    label: <System>
+    icon: cluster
+    status: built
+    facts:
+      summary: "<What the system is and why it exists.>"
+      how: "<Where it runs and how it is put together.>"
+      url: {Home: "https://<address>"}
+    children:
+      - id: telemetry
+        label: <Collector>
+        icon: chart
+        status: built
+        views: [observability]
+        facts:
+          summary: "<Where logs, metrics and traces go.>"
+          how: "<Collector, protocol, backend.>"
+          api: "`<host>:4317`"
+      - id: frontend
+        label: <Frontend>
+        icon: browser
+        status: built
+        facts:
+          summary: "<What it is and why it's here.>"
+          how: "<Mechanism, protocol, what it owns.>"
+          api: "`<host>:<port>`"
+      - id: backend
+        label: <Backend>
+        icon: api
+        status: built
+        facts:
+          summary: "<What it is and why it's here.>"
+          how: "<Mechanism, protocol, what it owns.>"
+          api: "`<host>:<port>`"
+      - id: store
+        label: <Database>
+        icon: database
+        status: built
+        facts:
+          summary: "<What it stores and why.>"
+          how: "<Engine, replication, who connects.>"
+          api: "`<host>:<port>`"
+
+  - id: external
+    label: <External service>
+    icon: cloud
+    status: external
+    facts:
+      summary: "<What the system uses it for.>"
+      how: "<How the system calls it and authenticates.>"
+      api: "`https://<address>`"
+
+edges:
+  - {id: u_fe, from: user, to: frontend, proto: HTTPS, port: 443, why: "Always on: <when the user uses this path>.", certs: pub-frontend}
+  - {id: fe_be, from: frontend, to: backend, proto: HTTP, port: 8080, why: "Used when <trigger>: <purpose>.", certs: {none: "<Why this hop is plaintext>"}}
+  - {id: be_db, from: backend, to: store, proto: PostgreSQL, port: 5432, why: "Used for <reads and writes>.", certs: {none: "<Why this hop is plaintext>"}}
+  - {id: be_ext, from: backend, to: external, proto: HTTPS, port: 443, why: "Used when <trigger>: <purpose>.", certs: pub-external, detail: "<Auth: API key, OAuth token…>"}
+  - {id: fe_otel, from: frontend, to: telemetry, proto: OTLP gRPC, port: 4317, view: observability, why: "Always on: <what it exports>.", certs: {none: "<Why>"}}
+  - {id: be_otel, from: backend, to: telemetry, proto: OTLP gRPC, port: 4317, view: observability, why: "Always on: <what it exports>.", certs: {none: "<Why>"}}
+
+scenarios:
+  - id: main-request
+    title: <One activity, e.g. Load the dashboard>
+    summary: "<One sentence: what this use case shows.>"
+    steps:
+      - {title: <User acts>, action: "<User → Frontend: GET / (443)>", text: "<What happens, naming protocol and port.>", edges: [u_fe]}
+      - {title: <Call the backend>, action: "<Frontend ↔ Backend: …>", text: "<…>", path: [fe_be]}
+      - {title: <Read the data>, action: "<Backend ↔ Database: …>", text: "<…>", path: [be_db, ~be_db]}
+      - {title: <Response returns>, action: "<Backend → Frontend → User: …>", text: "<…>", path: [~fe_be, ~u_fe], result: success, outcome: "<What the user got>"}

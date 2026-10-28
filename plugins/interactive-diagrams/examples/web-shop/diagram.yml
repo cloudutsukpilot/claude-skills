@@ -1,0 +1,219 @@
+# Example: a fictional online shop, written at level 3 (structure + connections + stories).
+# Build:  python3 ../../scripts/build.py diagram.yml   → index.html
+title: Example web shop
+description: "A fictional three-tier shop: CDN at the edge, a web app and API on Kubernetes, PostgreSQL and Redis behind them, a card payment provider and an email service outside."
+level: 1
+levels: [Context, Containers, Components]
+accent: "#38BDF8"
+accent2: "#8B5CF6"
+
+views:
+  - {id: observability, label: Observability, icon: chart}
+  - {id: security, label: Security, icon: lock}
+
+certs:
+  pub-shop:
+    label: shop.example.com
+    type: public
+    by: "The CDN edge (TLS ends there)"
+    issuer: "A public CA through the CDN's managed certificates"
+    valid: "90 days; the CDN renews it automatically"
+    trust: "Public chain: every browser trusts the root"
+  pub-origin:
+    label: origin.shop.example.com
+    type: public
+    by: "The ingress controller in the cluster"
+    issuer: "Let's Encrypt via cert-manager (ACME HTTP-01)"
+    valid: "90 days; cert-manager renews it 30 days before expiry"
+    stored: "Kubernetes Secret `shop/origin-tls`"
+    trust: "Public chain; the CDN validates the origin certificate"
+  pub-payments:
+    label: api.payments.example
+    type: public
+    by: "The payment provider's API"
+    issuer: "The provider's public CA"
+    valid: "Managed by the provider"
+    trust: "Public chain in the API container's CA bundle"
+  pub-mail:
+    label: api.mail.example
+    type: public
+    by: "The email service's API"
+    issuer: "The provider's public CA"
+    valid: "Managed by the provider"
+    trust: "Public chain in the worker's CA bundle"
+
+nodes:
+  - id: customer
+    label: Customer
+    icon: user
+    status: external
+    facts:
+      summary: "A shopper in a browser or on a phone, browsing and placing orders."
+      how: "Talks only HTTPS to the CDN; never reaches the cluster directly."
+      api: "None of its own: a browser on `https://shop.example.com`"
+
+  - id: shop
+    label: Shop platform
+    icon: cluster
+    status: built
+    facts:
+      summary: "Everything the shop runs itself: the edge, the apps and their data."
+      how: "One Kubernetes cluster behind a CDN; apps are stateless, state lives in PostgreSQL and Redis."
+      where: "one region · namespace `shop`"
+      url: {Shop: "https://shop.example.com"}
+    children:
+      - id: edge
+        label: Edge
+        icon: globe
+        status: built
+        facts:
+          summary: "Where the public internet meets the shop: caching and TLS."
+          how: "The CDN serves cached pages and forwards the rest to the ingress over HTTPS."
+          api: "None of its own: the CDN's dashboard"
+        children:
+          - id: cdn
+            label: CDN
+            icon: cloud
+            status: external
+            facts:
+              summary: "Caches pages and images close to shoppers and absorbs traffic spikes."
+              how: "Terminates TLS for shop.example.com and forwards cache misses to the origin."
+              url: {Shop: "https://shop.example.com"}
+          - id: ingress
+            label: Ingress
+            icon: balancer
+            status: built
+            facts:
+              summary: "The cluster's front door: routes each path to the right service."
+              how: "An NGINX ingress controller; `/api` goes to the API, everything else to the web app."
+              where: "ns `ingress-nginx`"
+              api: "`origin.shop.example.com:443`"
+      - id: apps
+        label: Apps
+        icon: container
+        status: built
+        facts:
+          summary: "The stateless services that make up the shop."
+          how: "Deployments with 2+ replicas each, scaled by CPU."
+          where: "ns `shop`"
+          api: "None of its own: `kubectl -n shop`"
+        children:
+          - id: web
+            label: Web app
+            icon: browser
+            status: built
+            facts:
+              summary: "Renders the shop's pages on the server."
+              how: "A Node.js server that calls the API for products, carts and orders."
+              api: "`web.shop.svc:3000`"
+          - id: api
+            label: Shop API
+            icon: api
+            status: built
+            facts:
+              summary: "Owns products, carts and orders, and takes payments."
+              how: "A REST API; reads and writes PostgreSQL, caches sessions and carts in Redis."
+              api: "`api.shop.svc:8080`"
+          - id: worker
+            label: Worker
+            icon: gear
+            status: built
+            facts:
+              summary: "Does the slow work after an order, so checkout stays fast."
+              how: "Consumes order events from a Redis stream and sends confirmation emails."
+              when: "always on"
+              api: "None: it only consumes the `orders` stream"
+      - id: data
+        label: Data
+        icon: database
+        status: built
+        facts:
+          summary: "The shop's state: orders, products, sessions."
+          how: "Managed PostgreSQL for records, Redis for sessions, carts and the order stream."
+          api: "None of its own: see each store"
+        children:
+          - id: pg
+            label: PostgreSQL
+            icon: database
+            status: built
+            facts:
+              summary: "The system of record for products, customers and orders."
+              how: "One primary and one replica; the API connects through a pool."
+              api: "`pg.shop.internal:5432`"
+          - id: redis
+            label: Redis
+            icon: bolt
+            status: built
+            facts:
+              summary: "Fast state: sessions, carts and the stream of new orders."
+              how: "Keys expire after 24 h; the `orders` stream is read by the worker."
+              api: "`redis.shop.svc:6379`"
+      - id: telemetry
+        label: Telemetry
+        icon: chart
+        status: planned
+        phase: 2
+        views: [observability]
+        facts:
+          summary: "Planned: one place for the apps' logs, metrics and traces."
+          how: "An OpenTelemetry collector receiving OTLP from every app."
+          api: "Planned: `otel.shop.svc:4317`"
+
+  - id: payments
+    label: Payments
+    icon: key
+    status: external
+    facts:
+      summary: "A card payment provider: the shop never stores card numbers."
+      how: "The API creates a payment over HTTPS with an API key; the provider calls back with a webhook."
+      url: {Docs: "https://payments.example"}
+      api: "`https://api.payments.example/v1`"
+
+  - id: mail
+    label: Email service
+    icon: mail
+    status: external
+    facts:
+      summary: "Sends order confirmations so the shop doesn't run a mail server."
+      how: "The worker posts each message to its HTTPS API with an API key."
+      api: "`https://api.mail.example/v3/send`"
+
+edges:
+  - {id: c_cdn, from: customer, to: cdn, proto: HTTPS, port: 443, label: browse, why: "Always on: every page, image and API call from a shopper enters here.", certs: pub-shop}
+  - {id: cdn_ing, from: cdn, to: ingress, proto: HTTPS, port: 443, label: cache miss, why: "On a cache miss or any API call, the CDN forwards the request to the cluster.", certs: pub-origin}
+  - {id: ing_web, from: ingress, to: web, proto: HTTP, port: 3000, why: "Used for every page request: the ingress routes `/` to the web app.", certs: {none: "Plain HTTP inside the cluster; TLS ended at the ingress."}}
+  - {id: ing_api, from: ingress, to: api, proto: HTTP, port: 8080, why: "Used for `/api` calls from the browser (cart updates, checkout).", certs: {none: "Plain HTTP inside the cluster; TLS ended at the ingress."}}
+  - {id: web_api, from: web, to: api, proto: HTTP, port: 8080, label: products, why: "Used while rendering a page: the web app fetches products and the cart.", certs: {none: "In-cluster traffic, no service mesh."}}
+  - {id: api_pg, from: api, to: pg, proto: PostgreSQL, port: 5432, why: "Used for every order and product read or write.", certs: {none: "Private network; TLS between the API and PostgreSQL is not enabled in this example."}}
+  - {id: api_redis, from: api, to: redis, proto: Redis, port: 6379, label: sessions, why: "Used on every request to load the session and cart.", certs: {none: "In-cluster Redis, plaintext."}}
+  - {id: api_stream, from: api, to: redis, proto: Redis, port: 6379, label: order event, oneway: true, kind: event, why: "Used right after an order is paid: the API adds it to the `orders` stream.", certs: {none: "In-cluster Redis, plaintext."}}
+  - {id: worker_redis, from: worker, to: redis, proto: Redis, port: 6379, label: XREAD, stream: true, why: "Always on: the worker blocks on the `orders` stream for new orders.", certs: {none: "In-cluster Redis, plaintext."}}
+  - {id: api_pay, from: api, to: payments, proto: HTTPS, port: 443, label: charge, view: security, main: true, why: "Used at checkout: the API asks the provider to charge the card.", certs: pub-payments, detail: "Authenticated with a secret API key in the `Authorization` header."}
+  - {id: pay_hook, from: payments, to: ingress, proto: Webhook, port: 443, label: paid, oneway: true, view: security, main: true, why: "Used when a payment settles: the provider tells the shop it is paid.", certs: pub-origin, detail: "Each call is signed; the API checks the signature before trusting it."}
+  - {id: ing_hook, from: ingress, to: api, proto: HTTP, port: 8080, label: webhook, oneway: true, why: "Used when the payment webhook arrives: the ingress passes it to the API.", certs: {none: "Plain HTTP inside the cluster; TLS ended at the ingress."}}
+  - {id: worker_mail, from: worker, to: mail, proto: HTTPS, port: 443, label: send, oneway: true, why: "Used once per new order: the worker sends the confirmation email.", certs: pub-mail}
+  - {id: api_otel, from: api, to: telemetry, proto: OTLP gRPC, port: 4317, view: observability, why: "Planned: always on, the API exports traces and metrics.", certs: {planned: "Planned: not designed yet."}}
+  - {id: web_otel, from: web, to: telemetry, proto: OTLP gRPC, port: 4317, view: observability, why: "Planned: always on, the web app exports traces.", certs: {planned: "Planned: not designed yet."}}
+  - {id: worker_otel, from: worker, to: telemetry, proto: OTLP gRPC, port: 4317, view: observability, why: "Planned: always on, the worker exports logs.", certs: {planned: "Planned: not designed yet."}}
+
+scenarios:
+  - id: browse
+    title: Browse a product
+    summary: "How a product page reaches the shopper."
+    steps:
+      - {title: Open the shop, action: "Customer → CDN: GET /products/mug (443)", text: "The browser opens the product page over HTTPS; the CDN has no cached copy.", edges: [c_cdn]}
+      - {title: Forward to the cluster, action: "CDN → Ingress → Web app: the page request", text: "The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.", path: [cdn_ing, ing_web]}
+      - {title: Fetch the product, action: "Web app ↔ API ↔ PostgreSQL: read the product", text: "The web app asks the API, which reads the product from PostgreSQL on 5432.", path: [web_api, api_pg, ~api_pg, ~web_api]}
+      - {title: Page returns, action: "Web app → Ingress → CDN → Customer: the page", text: "The rendered page travels back; the CDN caches it for the next shopper.", path: [~ing_web, ~cdn_ing, ~c_cdn], result: success, outcome: "Product page shown"}
+  - id: checkout
+    title: Place an order
+    summary: "Checkout, payment and the confirmation email."
+    steps:
+      - {title: Press Pay, action: "Customer → CDN → Ingress → API: POST /api/checkout", text: "The checkout call passes the CDN and the ingress to the API.", path: [c_cdn, cdn_ing, ing_api]}
+      - {title: Load the cart, action: "API ↔ Redis: read the session and cart", text: "The API reads the cart from Redis on 6379.", path: [api_redis, ~api_redis]}
+      - {title: Charge the card, action: "API ↔ Payments: create a charge (443)", text: "The API asks the payment provider to charge the card over HTTPS.", path: [api_pay, ~api_pay]}
+      - {title: Save the order, action: "API ↔ PostgreSQL: insert the order", text: "The order is written to PostgreSQL.", path: [api_pg, ~api_pg]}
+      - {title: Confirm to the shopper, action: "API → Ingress → CDN → Customer: order confirmed", text: "The confirmation page returns the way the request came.", path: [~ing_api, ~cdn_ing, ~c_cdn]}
+      - {title: Payment settles, action: "Payments → Ingress → API: signed webhook", text: "Later, the provider posts a signed webhook; the API marks the order paid.", path: [pay_hook, ing_hook]}
+      - {title: Queue the email, action: "API → Redis: add the order to the stream", text: "The API adds an event to the `orders` stream and moves on.", edges: [api_stream]}
+      - {title: Send the email, action: "Worker → Email service: send the confirmation", text: "The worker reads the event and posts the email over HTTPS.", edges: [worker_mail], result: success, outcome: "Order placed and confirmed"}

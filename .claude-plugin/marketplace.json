@@ -1,0 +1,21 @@
+{
+  "name": "cloudutsuk",
+  "owner": {
+    "name": "Sakharam Shinde",
+    "url": "https://github.com/cloudutsukpilot"
+  },
+  "metadata": {
+    "description": "Version-controlled Claude Code skills, packaged as plugins.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "interactive-diagrams",
+      "source": "./plugins/interactive-diagrams",
+      "description": "Explorable architecture diagrams as self-contained HTML: nested levels, pan and zoom, protocol cards, certificates, view tabs and animated use cases. Three tiered skills: diagram-level-1, -2, -3.",
+      "version": "1.0.0",
+      "category": "diagrams",
+      "keywords": ["diagram", "architecture", "c4", "interactive", "visualization"]
+    }
+  ]
+}
