@@ -21,11 +21,9 @@ Update later:
 /plugin marketplace update cloudutsuk
 ```
 
-Pin a version instead of following `main`:
-
-```
-/plugin marketplace add cloudutsukpilot/claude-skills#interactive-diagrams-v1.0.0
-```
+Every release is a git tag (`interactive-diagrams-v1.0.0`); see [CHANGELOG.md](CHANGELOG.md) for
+what changed. To stay on a release, check out its tag in a local clone and add that folder as the
+marketplace (`/plugin marketplace add ~/path/to/claude-skills`).
 
 ### For a team or a project
 
