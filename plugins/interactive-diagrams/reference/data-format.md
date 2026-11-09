@@ -21,6 +21,7 @@ diagram only uses level-1 keys.
 | `views` | 2 | Tabs for cross-cutting arrows: `[{id, label, icon?}]`. `Main flows` is always first and `Show all` (id `*`) last; don't define `*` |
 | `scenarios` | 3 | Use cases `[{id, title, summary?, modes?, steps}]` |
 | `loop` | 3 | `true`: auto-play starts again after the last use case |
+| `details` | 3 | `true`: open with the Details box ticked, so the step card shows each step's `detail` (the reader's own choice, once made, wins) |
 | `lock` | 3 | `true`: open in lock mode, so use cases play on the reader's layout without opening or closing components (the padlock in the player toggles it) |
 | `tour` | 3 | Legacy single story `{title, modes?, steps}`; counts as one use case |
 | `map` | 3 | Geo backdrop `{name: world, lon: [w, e], lat: [n, s], width, height}` |
@@ -65,8 +66,9 @@ diagram only uses level-1 keys.
 
 | Key | Notes |
 |---|---|
-| `title`, `text` | Required. 2–5 words; 1–2 sentences under ~200 characters |
+| `title`, `text` | Required. 2–5 words; 1–2 sentences under ~230 characters, saying what the step does and why |
 | `action` | Required. The banner line, under ~90 characters |
+| `detail` | Optional. 3–10 short lines of Markdown (under ~160 words), shown on the step card when the reader ticks Details |
 | `edges` | Arrows that run at the same time (one sender or one receiver) |
 | `path` | Hops one after another; `~id` runs an arrow backwards (the response) |
 | `lights` | Components to light without a packet |

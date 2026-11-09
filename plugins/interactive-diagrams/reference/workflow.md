@@ -70,7 +70,7 @@ the hover card, the component panel, the arrow panel (exchange first, certificat
 zoom, the start level, the use cases, fullscreen and no script errors. It exits 1 on any failure.
 
 Read at least `light-desktop-level1.png`, the deepest level, `panel.png` and `card.png`; at level 2
-also `edge-panel.png` and the `view-*.png` files; at level 3 also `step-next.png`, `step-locked.png` and `outcome.png`.
+also `edge-panel.png` and the `view-*.png` files; at level 3 also `step-next.png`, `step-details.png`, `step-locked.png` and `outcome.png`.
 Fix what looks wrong (overlaps, a level with too many components, unreadable labels), rebuild and
 check again.
 

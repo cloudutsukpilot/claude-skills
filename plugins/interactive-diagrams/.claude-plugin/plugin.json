@@ -1,6 +1,6 @@
 {
   "name": "interactive-diagrams",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Explorable architecture diagrams as self-contained HTML pages, in three tiers: structure (level 1), connections (level 2), stories (level 3).",
   "author": {
     "name": "Sakharam Shinde",

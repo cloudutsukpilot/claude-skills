@@ -1160,34 +1160,91 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   left: 50%;
   bottom: 0.8rem;
   z-index: 4;
-  max-width: calc(100% - 2rem);
-  padding: 0.45rem 0.9rem;
+  width: min(38rem, 100% - 2rem);
+  padding: 0.5rem 0.85rem 0.55rem;
+  border: 1px solid var(--dgm-border);
+  border-left: 4px solid var(--dgm-accent2);
   border-radius: 0.6rem;
-  background: color-mix(in srgb, var(--dgm-ink) 82%, transparent);
-  color: var(--dgm-host-bg);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-align: center;
+  background: color-mix(in srgb, var(--dgm-host-bg) 95%, transparent);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  color: var(--dgm-text);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  text-align: left;
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 0.6rem);
-  transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
 .dgm-banner.is-on {
   opacity: 1;
+  pointer-events: auto;
   transform: translate(-50%, 0);
 }
+.dgm-banner .dgm-banner-head {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  color: var(--dgm-muted);
+  font-size: 0.78rem;
+}
+.dgm-banner .dgm-banner-n {
+  padding: 0 0.45rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--dgm-accent) 16%, var(--dgm-host-bg));
+  color: var(--dgm-ink);
+}
+.dgm-banner .dgm-banner-n:empty {
+  display: none;
+}
+.dgm-banner .dgm-banner-title {
+  color: var(--dgm-ink);
+}
+.dgm-banner .dgm-banner-line {
+  margin-top: 0.1rem;
+  color: var(--dgm-ink);
+  font-weight: 600;
+}
+.dgm-banner .dgm-banner-text {
+  max-height: 6.2em;
+  margin-top: 0.2rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dgm-banner .dgm-banner-text:empty {
+  display: none;
+}
+.dgm-banner .dgm-banner-text p {
+  margin: 0 0 0.3rem;
+}
+.dgm-banner .dgm-banner-text p:last-child,
+.dgm-banner .dgm-banner-text ul:last-child {
+  margin-bottom: 0;
+}
+.dgm-banner .dgm-banner-text ul {
+  margin: 0.15rem 0 0.3rem;
+  padding-left: 1.15rem;
+}
+.dgm-banner .dgm-banner-text code {
+  font-size: 0.82em;
+}
+.dgm-banner.is-detailed .dgm-banner-text {
+  max-height: min(15em, 38vh);
+}
 .dgm-banner.is-success {
-  background: #16a34a;
-  color: #fff;
+  border-left-color: #16a34a;
+}
+.dgm-banner.is-success .dgm-banner-line {
+  color: #16a34a;
 }
 .dgm-banner.is-fail {
-  background: #dc2626;
-  color: #fff;
+  border-left-color: #dc2626;
+}
+.dgm-banner.is-fail .dgm-banner-line {
+  color: #dc2626;
 }
 .dgm-banner.is-done {
-  background: var(--dgm-accent);
-  color: #fff;
+  border-left-color: var(--dgm-accent);
 }
 
 .dgm.has-panel .dgm-banner {
@@ -1258,7 +1315,8 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
     translate: 4px 0;
   }
 }
-.dgm-toggle-mode[hidden] {
+.dgm-toggle-mode[hidden],
+.dgm-toggle-details[hidden] {
   display: none;
 }
 
@@ -1296,7 +1354,8 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   background-color: var(--dgm-accent);
 }
 
-.dgm-toggle-mode {
+.dgm-toggle-mode,
+.dgm-toggle-details {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1344,6 +1403,14 @@ body.dgm-full-open {
 @media (max-width: 576px) {
   .dgm-stage {
     height: 70vh;
+  }
+  .dgm-banner {
+    bottom: 0.5rem;
+    width: calc(100% - 1rem);
+    font-size: 0.82rem;
+  }
+  .dgm-banner.is-detailed .dgm-banner-text {
+    max-height: min(11em, 30vh);
   }
   .dgm-panel-grip {
     top: auto;
@@ -1565,6 +1632,7 @@ body.dgm-full-open {
 <button type="button" class="dgm-btn dgm-btn-lock" data-act="lock" aria-pressed="false" aria-label="Lock layout"><i class="fas fa-lock-open" aria-hidden="true"></i></button>
 <div class="dgm-dots" role="group" aria-label="Steps"></div>
 <label class="dgm-toggle-mode" hidden><input type="checkbox" data-act="mode"> <span></span></label>
+<label class="dgm-toggle-details" hidden title="Show each step's longer description"><input type="checkbox" data-act="details"> <span>Details</span></label>
 </div>
 <div class="dgm-fallback">
 <p><strong>Example web shop</strong></p>
@@ -1576,22 +1644,22 @@ body.dgm-full-open {
 </ul>
 <p><strong>Browse a product</strong>: How a product page reaches the shopper.</p><ol>
 <li><strong>Open the shop</strong>: The browser opens the product page over HTTPS; the CDN has no cached copy.</li>
-<li><strong>Forward to the cluster</strong>: The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.</li>
-<li><strong>Fetch the product</strong>: The web app asks the API, which reads the product from PostgreSQL on 5432.</li>
-<li><strong>Page returns</strong>: The rendered page travels back; the CDN caches it for the next shopper.</li>
+<li><strong>Forward to the cluster</strong>: The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000. - The CDN has no fresh copy of `/products/mug`, so it opens its own HTTPS connection to the cluster on 443. - The ingress ends TLS there and matches the path: `/` goes to the web app, `/api` to the API. - Behind the ingress the hop is plain HTTP on port 3000, inside the cluster.</li>
+<li><strong>Fetch the product</strong>: The web app asks the API, which reads the product from PostgreSQL on 5432. The web app renders on the server, so it needs the product before it can send any HTML. - Web app → API: `GET` on port 8080, inside the cluster. - API → PostgreSQL: one read on 5432; the answer comes back the same way. - Each hop waits for its reply, so a slow database makes the whole page slow.</li>
+<li><strong>Page returns</strong>: The rendered page travels back; the CDN caches it for the next shopper. - The page goes back hop by hop: web app → ingress → CDN → browser. - The CDN keeps a copy, so the next shopper who asks for this page is served from the edge and the cluster never sees the request.</li>
 </ol>
 <p><strong>Place an order</strong>: Checkout, payment and the confirmation email.</p><ol>
-<li><strong>Press Pay</strong>: The checkout call passes the CDN and the ingress to the API.</li>
+<li><strong>Press Pay</strong>: The checkout call passes the CDN and the ingress to the API. - Checkout is never cached: the CDN passes `POST /api/checkout` straight to the cluster over HTTPS. - The ingress routes `/api` to the API on 8080. - Nothing is charged yet; the API first loads the cart (next step).</li>
 <li><strong>Load the cart</strong>: The API reads the cart from Redis on 6379.</li>
-<li><strong>Charge the card</strong>: The API asks the payment provider to charge the card over HTTPS.</li>
+<li><strong>Charge the card</strong>: The API asks the payment provider to charge the card over HTTPS. - The API calls the payment provider over HTTPS on 443, with a secret API key in the `Authorization` header. - The API waits for the provider&#x27;s answer: the charge is accepted or declined. - Settlement comes later, as a webhook (step 6).</li>
 <li><strong>Save the order</strong>: The order is written to PostgreSQL.</li>
 <li><strong>Confirm to the shopper</strong>: The confirmation page returns the way the request came.</li>
-<li><strong>Payment settles</strong>: Later, the provider posts a signed webhook; the API marks the order paid.</li>
+<li><strong>Payment settles</strong>: Later, the provider posts a signed webhook; the API marks the order paid. - Later the provider posts a webhook to the shop&#x27;s public address (443). - Each call is signed; the API checks the signature before it trusts the call and marks the order paid. - It is one-way: nothing travels back to the provider except the HTTP status.</li>
 <li><strong>Queue the email</strong>: The API adds an event to the `orders` stream and moves on.</li>
 <li><strong>Send the email</strong>: The worker reads the event and posts the email over HTTPS.</li>
 </ol>
 </div>
-<script type="application/json" class="dgm-data">{"title": "Example web shop", "description": "A fictional three-tier shop: CDN at the edge, a web app and API on Kubernetes, PostgreSQL and Redis behind them, a card payment provider and an email service outside.", "level": 1, "levels": ["Context", "Containers", "Components"], "accent": "#38BDF8", "accent2": "#8B5CF6", "views": [{"id": "observability", "label": "Observability", "icon": "chart"}, {"id": "security", "label": "Security", "icon": "lock"}], "certs": {"pub-shop": {"label": "shop.example.com", "type": "public", "by": "The CDN edge (TLS ends there)", "issuer": "A public CA through the CDN's managed certificates", "valid": "90 days; the CDN renews it automatically", "trust": "Public chain: every browser trusts the root"}, "pub-origin": {"label": "origin.shop.example.com", "type": "public", "by": "The ingress controller in the cluster", "issuer": "Let's Encrypt via cert-manager (ACME HTTP-01)", "valid": "90 days; cert-manager renews it 30 days before expiry", "stored": "Kubernetes Secret `shop/origin-tls`", "trust": "Public chain; the CDN validates the origin certificate"}, "pub-payments": {"label": "api.payments.example", "type": "public", "by": "The payment provider's API", "issuer": "The provider's public CA", "valid": "Managed by the provider", "trust": "Public chain in the API container's CA bundle"}, "pub-mail": {"label": "api.mail.example", "type": "public", "by": "The email service's API", "issuer": "The provider's public CA", "valid": "Managed by the provider", "trust": "Public chain in the worker's CA bundle"}}, "nodes": [{"id": "customer", "label": "Customer", "icon": "user", "status": "external", "facts": {"summary": "A shopper in a browser or on a phone, browsing and placing orders.", "how": "Talks only HTTPS to the CDN; never reaches the cluster directly.", "api": "None of its own: a browser on `https://shop.example.com`"}}, {"id": "shop", "label": "Shop platform", "icon": "cluster", "status": "built", "facts": {"summary": "Everything the shop runs itself: the edge, the apps and their data.", "how": "One Kubernetes cluster behind a CDN; apps are stateless, state lives in PostgreSQL and Redis.", "where": "one region · namespace `shop`", "url": {"Shop": "https://shop.example.com"}}, "children": [{"id": "edge", "label": "Edge", "icon": "globe", "status": "built", "facts": {"summary": "Where the public internet meets the shop: caching and TLS.", "how": "The CDN serves cached pages and forwards the rest to the ingress over HTTPS.", "api": "None of its own: the CDN's dashboard"}, "children": [{"id": "cdn", "label": "CDN", "icon": "cloud", "status": "external", "facts": {"summary": "Caches pages and images close to shoppers and absorbs traffic spikes.", "how": "Terminates TLS for shop.example.com and forwards cache misses to the origin.", "url": {"Shop": "https://shop.example.com"}}}, {"id": "ingress", "label": "Ingress", "icon": "balancer", "status": "built", "facts": {"summary": "The cluster's front door: routes each path to the right service.", "how": "An NGINX ingress controller; `/api` goes to the API, everything else to the web app.", "where": "ns `ingress-nginx`", "api": "`origin.shop.example.com:443`"}}]}, {"id": "apps", "label": "Apps", "icon": "container", "status": "built", "facts": {"summary": "The stateless services that make up the shop.", "how": "Deployments with 2+ replicas each, scaled by CPU.", "where": "ns `shop`", "api": "None of its own: `kubectl -n shop`"}, "children": [{"id": "web", "label": "Web app", "icon": "browser", "status": "built", "facts": {"summary": "Renders the shop's pages on the server.", "how": "A Node.js server that calls the API for products, carts and orders.", "api": "`web.shop.svc:3000`"}}, {"id": "api", "label": "Shop API", "icon": "api", "status": "built", "facts": {"summary": "Owns products, carts and orders, and takes payments.", "how": "A REST API; reads and writes PostgreSQL, caches sessions and carts in Redis.", "api": "`api.shop.svc:8080`"}}, {"id": "worker", "label": "Worker", "icon": "gear", "status": "built", "facts": {"summary": "Does the slow work after an order, so checkout stays fast.", "how": "Consumes order events from a Redis stream and sends confirmation emails.", "when": "always on", "api": "None: it only consumes the `orders` stream"}}]}, {"id": "data", "label": "Data", "icon": "database", "status": "built", "facts": {"summary": "The shop's state: orders, products, sessions.", "how": "Managed PostgreSQL for records, Redis for sessions, carts and the order stream.", "api": "None of its own: see each store"}, "children": [{"id": "pg", "label": "PostgreSQL", "icon": "database", "status": "built", "facts": {"summary": "The system of record for products, customers and orders.", "how": "One primary and one replica; the API connects through a pool.", "api": "`pg.shop.internal:5432`"}}, {"id": "redis", "label": "Redis", "icon": "bolt", "status": "built", "facts": {"summary": "Fast state: sessions, carts and the stream of new orders.", "how": "Keys expire after 24 h; the `orders` stream is read by the worker.", "api": "`redis.shop.svc:6379`"}}]}, {"id": "telemetry", "label": "Telemetry", "icon": "chart", "status": "planned", "phase": 2, "views": ["observability"], "facts": {"summary": "Planned: one place for the apps' logs, metrics and traces.", "how": "An OpenTelemetry collector receiving OTLP from every app.", "api": "Planned: `otel.shop.svc:4317`"}}]}, {"id": "payments", "label": "Payments", "icon": "key", "status": "external", "facts": {"summary": "A card payment provider: the shop never stores card numbers.", "how": "The API creates a payment over HTTPS with an API key; the provider calls back with a webhook.", "url": {"Docs": "https://payments.example"}, "api": "`https://api.payments.example/v1`"}}, {"id": "mail", "label": "Email service", "icon": "mail", "status": "external", "facts": {"summary": "Sends order confirmations so the shop doesn't run a mail server.", "how": "The worker posts each message to its HTTPS API with an API key.", "api": "`https://api.mail.example/v3/send`"}}], "edges": [{"id": "c_cdn", "from": "customer", "to": "cdn", "proto": "HTTPS", "port": 443, "label": "browse", "why": "Always on: every page, image and API call from a shopper enters here.", "certs": "pub-shop"}, {"id": "cdn_ing", "from": "cdn", "to": "ingress", "proto": "HTTPS", "port": 443, "label": "cache miss", "why": "On a cache miss or any API call, the CDN forwards the request to the cluster.", "certs": "pub-origin"}, {"id": "ing_web", "from": "ingress", "to": "web", "proto": "HTTP", "port": 3000, "why": "Used for every page request: the ingress routes `/` to the web app.", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "ing_api", "from": "ingress", "to": "api", "proto": "HTTP", "port": 8080, "why": "Used for `/api` calls from the browser (cart updates, checkout).", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "web_api", "from": "web", "to": "api", "proto": "HTTP", "port": 8080, "label": "products", "why": "Used while rendering a page: the web app fetches products and the cart.", "certs": {"none": "In-cluster traffic, no service mesh."}}, {"id": "api_pg", "from": "api", "to": "pg", "proto": "PostgreSQL", "port": 5432, "why": "Used for every order and product read or write.", "certs": {"none": "Private network; TLS between the API and PostgreSQL is not enabled in this example."}}, {"id": "api_redis", "from": "api", "to": "redis", "proto": "Redis", "port": 6379, "label": "sessions", "why": "Used on every request to load the session and cart.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "api_stream", "from": "api", "to": "redis", "proto": "Redis", "port": 6379, "label": "order event", "oneway": true, "kind": "event", "why": "Used right after an order is paid: the API adds it to the `orders` stream.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "worker_redis", "from": "worker", "to": "redis", "proto": "Redis", "port": 6379, "label": "XREAD", "stream": true, "why": "Always on: the worker blocks on the `orders` stream for new orders.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "api_pay", "from": "api", "to": "payments", "proto": "HTTPS", "port": 443, "label": "charge", "view": "security", "main": true, "why": "Used at checkout: the API asks the provider to charge the card.", "certs": "pub-payments", "detail": "Authenticated with a secret API key in the `Authorization` header."}, {"id": "pay_hook", "from": "payments", "to": "ingress", "proto": "Webhook", "port": 443, "label": "paid", "oneway": true, "view": "security", "main": true, "why": "Used when a payment settles: the provider tells the shop it is paid.", "certs": "pub-origin", "detail": "Each call is signed; the API checks the signature before trusting it."}, {"id": "ing_hook", "from": "ingress", "to": "api", "proto": "HTTP", "port": 8080, "label": "webhook", "oneway": true, "why": "Used when the payment webhook arrives: the ingress passes it to the API.", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "worker_mail", "from": "worker", "to": "mail", "proto": "HTTPS", "port": 443, "label": "send", "oneway": true, "why": "Used once per new order: the worker sends the confirmation email.", "certs": "pub-mail"}, {"id": "api_otel", "from": "api", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the API exports traces and metrics.", "certs": {"planned": "Planned: not designed yet."}}, {"id": "web_otel", "from": "web", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the web app exports traces.", "certs": {"planned": "Planned: not designed yet."}}, {"id": "worker_otel", "from": "worker", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the worker exports logs.", "certs": {"planned": "Planned: not designed yet."}}], "scenarios": [{"id": "browse", "title": "Browse a product", "summary": "How a product page reaches the shopper.", "steps": [{"title": "Open the shop", "action": "Customer → CDN: GET /products/mug (443)", "text": "The browser opens the product page over HTTPS; the CDN has no cached copy.", "edges": ["c_cdn"]}, {"title": "Forward to the cluster", "action": "CDN → Ingress → Web app: the page request", "text": "The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.", "path": ["cdn_ing", "ing_web"]}, {"title": "Fetch the product", "action": "Web app ↔ API ↔ PostgreSQL: read the product", "text": "The web app asks the API, which reads the product from PostgreSQL on 5432.", "path": ["web_api", "api_pg", "~api_pg", "~web_api"]}, {"title": "Page returns", "action": "Web app → Ingress → CDN → Customer: the page", "text": "The rendered page travels back; the CDN caches it for the next shopper.", "path": ["~ing_web", "~cdn_ing", "~c_cdn"], "result": "success", "outcome": "Product page shown"}]}, {"id": "checkout", "title": "Place an order", "summary": "Checkout, payment and the confirmation email.", "steps": [{"title": "Press Pay", "action": "Customer → CDN → Ingress → API: POST /api/checkout", "text": "The checkout call passes the CDN and the ingress to the API.", "path": ["c_cdn", "cdn_ing", "ing_api"]}, {"title": "Load the cart", "action": "API ↔ Redis: read the session and cart", "text": "The API reads the cart from Redis on 6379.", "path": ["api_redis", "~api_redis"]}, {"title": "Charge the card", "action": "API ↔ Payments: create a charge (443)", "text": "The API asks the payment provider to charge the card over HTTPS.", "path": ["api_pay", "~api_pay"]}, {"title": "Save the order", "action": "API ↔ PostgreSQL: insert the order", "text": "The order is written to PostgreSQL.", "path": ["api_pg", "~api_pg"]}, {"title": "Confirm to the shopper", "action": "API → Ingress → CDN → Customer: order confirmed", "text": "The confirmation page returns the way the request came.", "path": ["~ing_api", "~cdn_ing", "~c_cdn"]}, {"title": "Payment settles", "action": "Payments → Ingress → API: signed webhook", "text": "Later, the provider posts a signed webhook; the API marks the order paid.", "path": ["pay_hook", "ing_hook"]}, {"title": "Queue the email", "action": "API → Redis: add the order to the stream", "text": "The API adds an event to the `orders` stream and moves on.", "edges": ["api_stream"]}, {"title": "Send the email", "action": "Worker → Email service: send the confirmation", "text": "The worker reads the event and posts the email over HTTPS.", "edges": ["worker_mail"], "result": "success", "outcome": "Order placed and confirmed"}]}]}</script>
+<script type="application/json" class="dgm-data">{"title": "Example web shop", "description": "A fictional three-tier shop: CDN at the edge, a web app and API on Kubernetes, PostgreSQL and Redis behind them, a card payment provider and an email service outside.", "level": 1, "levels": ["Context", "Containers", "Components"], "accent": "#38BDF8", "accent2": "#8B5CF6", "views": [{"id": "observability", "label": "Observability", "icon": "chart"}, {"id": "security", "label": "Security", "icon": "lock"}], "certs": {"pub-shop": {"label": "shop.example.com", "type": "public", "by": "The CDN edge (TLS ends there)", "issuer": "A public CA through the CDN's managed certificates", "valid": "90 days; the CDN renews it automatically", "trust": "Public chain: every browser trusts the root"}, "pub-origin": {"label": "origin.shop.example.com", "type": "public", "by": "The ingress controller in the cluster", "issuer": "Let's Encrypt via cert-manager (ACME HTTP-01)", "valid": "90 days; cert-manager renews it 30 days before expiry", "stored": "Kubernetes Secret `shop/origin-tls`", "trust": "Public chain; the CDN validates the origin certificate"}, "pub-payments": {"label": "api.payments.example", "type": "public", "by": "The payment provider's API", "issuer": "The provider's public CA", "valid": "Managed by the provider", "trust": "Public chain in the API container's CA bundle"}, "pub-mail": {"label": "api.mail.example", "type": "public", "by": "The email service's API", "issuer": "The provider's public CA", "valid": "Managed by the provider", "trust": "Public chain in the worker's CA bundle"}}, "nodes": [{"id": "customer", "label": "Customer", "icon": "user", "status": "external", "facts": {"summary": "A shopper in a browser or on a phone, browsing and placing orders.", "how": "Talks only HTTPS to the CDN; never reaches the cluster directly.", "api": "None of its own: a browser on `https://shop.example.com`"}}, {"id": "shop", "label": "Shop platform", "icon": "cluster", "status": "built", "facts": {"summary": "Everything the shop runs itself: the edge, the apps and their data.", "how": "One Kubernetes cluster behind a CDN; apps are stateless, state lives in PostgreSQL and Redis.", "where": "one region · namespace `shop`", "url": {"Shop": "https://shop.example.com"}}, "children": [{"id": "edge", "label": "Edge", "icon": "globe", "status": "built", "facts": {"summary": "Where the public internet meets the shop: caching and TLS.", "how": "The CDN serves cached pages and forwards the rest to the ingress over HTTPS.", "api": "None of its own: the CDN's dashboard"}, "children": [{"id": "cdn", "label": "CDN", "icon": "cloud", "status": "external", "facts": {"summary": "Caches pages and images close to shoppers and absorbs traffic spikes.", "how": "Terminates TLS for shop.example.com and forwards cache misses to the origin.", "url": {"Shop": "https://shop.example.com"}}}, {"id": "ingress", "label": "Ingress", "icon": "balancer", "status": "built", "facts": {"summary": "The cluster's front door: routes each path to the right service.", "how": "An NGINX ingress controller; `/api` goes to the API, everything else to the web app.", "where": "ns `ingress-nginx`", "api": "`origin.shop.example.com:443`"}}]}, {"id": "apps", "label": "Apps", "icon": "container", "status": "built", "facts": {"summary": "The stateless services that make up the shop.", "how": "Deployments with 2+ replicas each, scaled by CPU.", "where": "ns `shop`", "api": "None of its own: `kubectl -n shop`"}, "children": [{"id": "web", "label": "Web app", "icon": "browser", "status": "built", "facts": {"summary": "Renders the shop's pages on the server.", "how": "A Node.js server that calls the API for products, carts and orders.", "api": "`web.shop.svc:3000`"}}, {"id": "api", "label": "Shop API", "icon": "api", "status": "built", "facts": {"summary": "Owns products, carts and orders, and takes payments.", "how": "A REST API; reads and writes PostgreSQL, caches sessions and carts in Redis.", "api": "`api.shop.svc:8080`"}}, {"id": "worker", "label": "Worker", "icon": "gear", "status": "built", "facts": {"summary": "Does the slow work after an order, so checkout stays fast.", "how": "Consumes order events from a Redis stream and sends confirmation emails.", "when": "always on", "api": "None: it only consumes the `orders` stream"}}]}, {"id": "data", "label": "Data", "icon": "database", "status": "built", "facts": {"summary": "The shop's state: orders, products, sessions.", "how": "Managed PostgreSQL for records, Redis for sessions, carts and the order stream.", "api": "None of its own: see each store"}, "children": [{"id": "pg", "label": "PostgreSQL", "icon": "database", "status": "built", "facts": {"summary": "The system of record for products, customers and orders.", "how": "One primary and one replica; the API connects through a pool.", "api": "`pg.shop.internal:5432`"}}, {"id": "redis", "label": "Redis", "icon": "bolt", "status": "built", "facts": {"summary": "Fast state: sessions, carts and the stream of new orders.", "how": "Keys expire after 24 h; the `orders` stream is read by the worker.", "api": "`redis.shop.svc:6379`"}}]}, {"id": "telemetry", "label": "Telemetry", "icon": "chart", "status": "planned", "phase": 2, "views": ["observability"], "facts": {"summary": "Planned: one place for the apps' logs, metrics and traces.", "how": "An OpenTelemetry collector receiving OTLP from every app.", "api": "Planned: `otel.shop.svc:4317`"}}]}, {"id": "payments", "label": "Payments", "icon": "key", "status": "external", "facts": {"summary": "A card payment provider: the shop never stores card numbers.", "how": "The API creates a payment over HTTPS with an API key; the provider calls back with a webhook.", "url": {"Docs": "https://payments.example"}, "api": "`https://api.payments.example/v1`"}}, {"id": "mail", "label": "Email service", "icon": "mail", "status": "external", "facts": {"summary": "Sends order confirmations so the shop doesn't run a mail server.", "how": "The worker posts each message to its HTTPS API with an API key.", "api": "`https://api.mail.example/v3/send`"}}], "edges": [{"id": "c_cdn", "from": "customer", "to": "cdn", "proto": "HTTPS", "port": 443, "label": "browse", "why": "Always on: every page, image and API call from a shopper enters here.", "certs": "pub-shop"}, {"id": "cdn_ing", "from": "cdn", "to": "ingress", "proto": "HTTPS", "port": 443, "label": "cache miss", "why": "On a cache miss or any API call, the CDN forwards the request to the cluster.", "certs": "pub-origin"}, {"id": "ing_web", "from": "ingress", "to": "web", "proto": "HTTP", "port": 3000, "why": "Used for every page request: the ingress routes `/` to the web app.", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "ing_api", "from": "ingress", "to": "api", "proto": "HTTP", "port": 8080, "why": "Used for `/api` calls from the browser (cart updates, checkout).", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "web_api", "from": "web", "to": "api", "proto": "HTTP", "port": 8080, "label": "products", "why": "Used while rendering a page: the web app fetches products and the cart.", "certs": {"none": "In-cluster traffic, no service mesh."}}, {"id": "api_pg", "from": "api", "to": "pg", "proto": "PostgreSQL", "port": 5432, "why": "Used for every order and product read or write.", "certs": {"none": "Private network; TLS between the API and PostgreSQL is not enabled in this example."}}, {"id": "api_redis", "from": "api", "to": "redis", "proto": "Redis", "port": 6379, "label": "sessions", "why": "Used on every request to load the session and cart.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "api_stream", "from": "api", "to": "redis", "proto": "Redis", "port": 6379, "label": "order event", "oneway": true, "kind": "event", "why": "Used right after an order is paid: the API adds it to the `orders` stream.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "worker_redis", "from": "worker", "to": "redis", "proto": "Redis", "port": 6379, "label": "XREAD", "stream": true, "why": "Always on: the worker blocks on the `orders` stream for new orders.", "certs": {"none": "In-cluster Redis, plaintext."}}, {"id": "api_pay", "from": "api", "to": "payments", "proto": "HTTPS", "port": 443, "label": "charge", "view": "security", "main": true, "why": "Used at checkout: the API asks the provider to charge the card.", "certs": "pub-payments", "detail": "Authenticated with a secret API key in the `Authorization` header."}, {"id": "pay_hook", "from": "payments", "to": "ingress", "proto": "Webhook", "port": 443, "label": "paid", "oneway": true, "view": "security", "main": true, "why": "Used when a payment settles: the provider tells the shop it is paid.", "certs": "pub-origin", "detail": "Each call is signed; the API checks the signature before trusting it."}, {"id": "ing_hook", "from": "ingress", "to": "api", "proto": "HTTP", "port": 8080, "label": "webhook", "oneway": true, "why": "Used when the payment webhook arrives: the ingress passes it to the API.", "certs": {"none": "Plain HTTP inside the cluster; TLS ended at the ingress."}}, {"id": "worker_mail", "from": "worker", "to": "mail", "proto": "HTTPS", "port": 443, "label": "send", "oneway": true, "why": "Used once per new order: the worker sends the confirmation email.", "certs": "pub-mail"}, {"id": "api_otel", "from": "api", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the API exports traces and metrics.", "certs": {"planned": "Planned: not designed yet."}}, {"id": "web_otel", "from": "web", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the web app exports traces.", "certs": {"planned": "Planned: not designed yet."}}, {"id": "worker_otel", "from": "worker", "to": "telemetry", "proto": "OTLP gRPC", "port": 4317, "view": "observability", "why": "Planned: always on, the worker exports logs.", "certs": {"planned": "Planned: not designed yet."}}], "scenarios": [{"id": "browse", "title": "Browse a product", "summary": "How a product page reaches the shopper.", "steps": [{"title": "Open the shop", "action": "Customer → CDN: GET /products/mug (443)", "text": "The browser opens the product page over HTTPS; the CDN has no cached copy.", "edges": ["c_cdn"]}, {"title": "Forward to the cluster", "action": "CDN → Ingress → Web app: the page request", "text": "The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.", "path": ["cdn_ing", "ing_web"], "detail": "- The CDN has no fresh copy of `/products/mug`, so it opens its own HTTPS connection to the cluster on 443.\n- The ingress ends TLS there and matches the path: `/` goes to the web app, `/api` to the API.\n- Behind the ingress the hop is plain HTTP on port 3000, inside the cluster.\n"}, {"title": "Fetch the product", "action": "Web app ↔ API ↔ PostgreSQL: read the product", "text": "The web app asks the API, which reads the product from PostgreSQL on 5432.", "path": ["web_api", "api_pg", "~api_pg", "~web_api"], "detail": "The web app renders on the server, so it needs the product before it can send any HTML.\n\n- Web app → API: `GET` on port 8080, inside the cluster.\n- API → PostgreSQL: one read on 5432; the answer comes back the same way.\n- Each hop waits for its reply, so a slow database makes the whole page slow.\n"}, {"title": "Page returns", "action": "Web app → Ingress → CDN → Customer: the page", "text": "The rendered page travels back; the CDN caches it for the next shopper.", "path": ["~ing_web", "~cdn_ing", "~c_cdn"], "result": "success", "outcome": "Product page shown", "detail": "- The page goes back hop by hop: web app → ingress → CDN → browser.\n- The CDN keeps a copy, so the next shopper who asks for this page is served from the edge and the cluster never sees the request.\n"}]}, {"id": "checkout", "title": "Place an order", "summary": "Checkout, payment and the confirmation email.", "steps": [{"title": "Press Pay", "action": "Customer → CDN → Ingress → API: POST /api/checkout", "text": "The checkout call passes the CDN and the ingress to the API.", "path": ["c_cdn", "cdn_ing", "ing_api"], "detail": "- Checkout is never cached: the CDN passes `POST /api/checkout` straight to the cluster over HTTPS.\n- The ingress routes `/api` to the API on 8080.\n- Nothing is charged yet; the API first loads the cart (next step).\n"}, {"title": "Load the cart", "action": "API ↔ Redis: read the session and cart", "text": "The API reads the cart from Redis on 6379.", "path": ["api_redis", "~api_redis"]}, {"title": "Charge the card", "action": "API ↔ Payments: create a charge (443)", "text": "The API asks the payment provider to charge the card over HTTPS.", "path": ["api_pay", "~api_pay"], "detail": "- The API calls the payment provider over HTTPS on 443, with a secret API key in the `Authorization` header.\n- The API waits for the provider's answer: the charge is accepted or declined.\n- Settlement comes later, as a webhook (step 6).\n"}, {"title": "Save the order", "action": "API ↔ PostgreSQL: insert the order", "text": "The order is written to PostgreSQL.", "path": ["api_pg", "~api_pg"]}, {"title": "Confirm to the shopper", "action": "API → Ingress → CDN → Customer: order confirmed", "text": "The confirmation page returns the way the request came.", "path": ["~ing_api", "~cdn_ing", "~c_cdn"]}, {"title": "Payment settles", "action": "Payments → Ingress → API: signed webhook", "text": "Later, the provider posts a signed webhook; the API marks the order paid.", "path": ["pay_hook", "ing_hook"], "detail": "- Later the provider posts a webhook to the shop's public address (443).\n- Each call is signed; the API checks the signature before it trusts the call and marks the order paid.\n- It is one-way: nothing travels back to the provider except the HTTP status.\n"}, {"title": "Queue the email", "action": "API → Redis: add the order to the stream", "text": "The API adds an event to the `orders` stream and moves on.", "edges": ["api_stream"]}, {"title": "Send the email", "action": "Worker → Email service: send the confirmation", "text": "The worker reads the event and posts the email over HTTPS.", "edges": ["worker_mail"], "result": "success", "outcome": "Order placed and confirmed"}]}]}</script>
 
 </figure>
 </main>
@@ -1621,6 +1689,9 @@ body.dgm-full-open {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SPEEDS = [0.5, 1, 2];
   const DWELL_MS = 1600;
+  // Reading time for a step's `detail` while Details is on: about 250 words a minute, at most 25 s.
+  const READ_MS_PER_WORD = 240;
+  const READ_MAX_MS = 25000;
   const ALL_VIEWS = '*'; // the Show all tab's id
   const MOVE_MS = reduceMotion ? 0 : 450;
   const DISC = 46; // icon disc diameter of a component, in diagram units
@@ -3239,6 +3310,21 @@ body.dgm-full-open {
       const modeLabel = ctl.querySelector('.dgm-toggle-mode');
       const modeBox = modeLabel && modeLabel.querySelector('input');
       const lockBtn = ctl.querySelector('[data-act="lock"]');
+      // Details: the step card shows each step's `detail` (3 to 10 lines) instead of its short `text`.
+      // `details: true` starts with it on; the reader's choice is remembered in this browser.
+      const detailLabel = ctl.querySelector('.dgm-toggle-details');
+      const detailBox = detailLabel && detailLabel.querySelector('input');
+      const hasDetail = list.some((x) => x.steps.some((y) => y.detail));
+      const detailKey = `dgm-details:${this.root.id}`;
+      let stored = null;
+      try {
+        stored = localStorage.getItem(detailKey);
+      } catch (e) { /* storage blocked: fall back to the diagram's default */ }
+      this.details = hasDetail && (stored === null ? this.data.details === true : stored === '1');
+      if (detailLabel) {
+        detailLabel.hidden = !hasDetail;
+        detailBox.checked = this.details;
+      }
       const setLockIcon = () => {
         if (!lockBtn) return;
         lockBtn.innerHTML = `<i class="fas fa-${this.locked ? 'lock' : 'lock-open'}" aria-hidden="true"></i>`;
@@ -3286,18 +3372,32 @@ body.dgm-full-open {
           capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
           capEl.querySelector('.dgm-step-text').textContent = `${this.scn.summary ? this.scn.summary + ' ' : ''}Press play, or step through with the arrows.`;
         } else {
-          const x = this.steps[i];
           capEl.querySelector('.dgm-counter').textContent = `${i + 1}/${this.steps.length}`;
-          capEl.querySelector('.dgm-step-title').textContent = x.title;
-          capEl.querySelector('.dgm-step-text').textContent = x.text;
+          capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
+          capEl.querySelector('.dgm-step-text').textContent = this.scn.summary || '';
+          this.setCard(i);
         }
         [...dots.children].forEach((d, j) => {
           d.classList.toggle('is-done', j < i);
           d.classList.toggle('is-current', j === i);
         });
       };
-      // Banner at the bottom of the diagram: what the current step is doing, then its outcome.
+      // Step card at the bottom of the canvas: the step's number and title, the banner line (what the
+      // step is doing, then its outcome) and its description: `text`, or `detail` while Details is on.
       const banner = this.root.querySelector('.dgm-banner');
+      if (banner) banner.innerHTML = '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-title"></span></div><div class="dgm-banner-line"></div><div class="dgm-banner-text"></div>';
+      const part = (c) => banner && banner.querySelector(`.dgm-banner-${c}`);
+      this.setCard = (i) => {
+        const x = this.steps[i];
+        if (!banner || !x) return;
+        const long = this.details && x.detail;
+        part('n').textContent = `${i + 1}/${this.steps.length}`;
+        part('title').textContent = x.title || '';
+        // A blank line in `detail` starts a new paragraph; `- ` lines are a list.
+        part('text').innerHTML = String(long ? x.detail : x.text || '').split(/\n\s*\n/).map((t) => markdown(t)).join('');
+        part('text').scrollTop = 0;
+        banner.classList.toggle('is-detailed', !!long);
+      };
       this.setBanner = (text, state = 'run') => {
         if (!banner) return;
         if (!text) {
@@ -3305,8 +3405,18 @@ body.dgm-full-open {
           return;
         }
         const icon = { success: '✓ ', fail: '✗ ', done: '● ' }[state] || '';
-        banner.textContent = icon + text;
-        banner.className = `dgm-banner is-on is-${state}`;
+        part('line').textContent = icon + text;
+        banner.classList.remove('is-run', 'is-success', 'is-fail', 'is-done');
+        banner.classList.add('is-on', `is-${state}`);
+      };
+      // How long auto-play stays on a step after its packets arrive: the usual pause, or, with Details
+      // on, long enough to read the detail (time already spent on the step counts).
+      this.dwell = (x) => {
+        const base = DWELL_MS / this.speed;
+        if (!this.details || !x || !x.detail) return base;
+        const words = String(x.detail).split(/\s+/).filter(Boolean).length;
+        const read = Math.min(READ_MAX_MS, words * READ_MS_PER_WORD) / this.speed;
+        return Math.max(base, read - (performance.now() - (this.stepT0 || 0)));
       };
       this.computeLit = (k) => {
         if (k < 0) return (this.lit = empty());
@@ -3388,10 +3498,13 @@ body.dgm-full-open {
         const b = this.box(reps);
         if (!b) return;
         const W = this.stage.clientWidth;
-        const H = this.stage.clientHeight;
-        const pad = 70;
+        // The step card covers the bottom of the canvas: frame the components in the space above it.
+        const card = this.root.querySelector('.dgm-banner.is-on');
+        const cover = card ? Math.min(card.offsetHeight + 16, this.stage.clientHeight * 0.45) : 30;
+        const H = this.stage.clientHeight - cover;
+        const pad = 60;
         const k = Math.min(1.3, (W - 2 * pad) / Math.max(1, b.x1 - b.x0), (H - 2 * pad) / Math.max(1, b.y1 - b.y0));
-        this.animateCam({ k, x: (W - k * (b.x1 + b.x0)) / 2, y: (H - k * (b.y1 + b.y0) - 30) / 2 });
+        this.animateCam({ k, x: (W - k * (b.x1 + b.x0)) / 2, y: (H - k * (b.y1 + b.y0)) / 2 });
       };
       // Packets travel one group at a time; within a group, along every arrow at once. Requests are
       // the accent2 pointer; responses (~) a green packet running backwards. 'stopped' if cancelled.
@@ -3552,6 +3665,7 @@ body.dgm-full-open {
         i = Math.min(i, this.steps.length - 1);
         const x = this.steps[i];
         this.stepRunning = i;
+        this.stepT0 = performance.now();
         const ids = await this.ensureVisible(i);
         if (token !== this.run) return 'stopped';
         this.pointerLayer.textContent = '';
@@ -3603,7 +3717,7 @@ body.dgm-full-open {
           const r = await this.showStep(this.k + 1, true);
           if (r === 'stopped' || !this.playing) break;
           const token = this.run;
-          await sleep(DWELL_MS / this.speed);
+          await sleep(this.dwell(this.steps[this.k]));
           if (token !== this.run || !this.playing) break;
           if (this.k >= this.steps.length - 1) {
             // End of this use case: auto-play moves on to the next one. After the last one the diagram
@@ -3674,7 +3788,7 @@ body.dgm-full-open {
       }
       ctl.addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-act]');
-        if (!b || b.dataset.act === 'mode') return;
+        if (!b || b.dataset.act === 'mode' || b.dataset.act === 'details') return;
         const a = b.dataset.act;
         if (a === 'play') {
           if (this.playing) this.stop();
@@ -3712,6 +3826,14 @@ body.dgm-full-open {
           this.play();
         } else if (this.k >= 0) await this.showStep(this.k, true);
       };
+      // Details on or off: the card switches at once; auto-play reads the new setting at the next pause.
+      detailBox?.addEventListener('change', () => {
+        this.details = detailBox.checked;
+        try {
+          localStorage.setItem(detailKey, this.details ? '1' : '0');
+        } catch (e) { /* storage blocked: the choice lasts for this page only */ }
+        if (banner && banner.classList.contains('is-on') && this.stepRunning != null) this.setCard(this.stepRunning);
+      });
       modeBox?.addEventListener('change', () => {
         this.stop();
         this.mode = modeBox.checked && this.modes[1] ? this.modes[1].id : this.modes[0].id;

@@ -312,6 +312,37 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
         check(stepped, 'Next animates the step (a packet travels its arrow)');
         await fig.screenshot({ path: path.join(args.out, 'step-next.png') });
         check(await page.$eval(`${sel} .dgm-banner`, (b) => b.classList.contains('is-on') && b.textContent.length > 3), 'the action banner shows what the step does');
+        check(
+          await page.$eval(`${sel} .dgm-banner`, (b) => b.querySelector('.dgm-banner-title').textContent.length > 1 && b.querySelector('.dgm-banner-text').textContent.length > 10),
+          'the step card shows the step title and its description',
+        );
+        // Details: the box swaps the card's short text for the step's `detail` (3 to 10 lines).
+        const box = await page.$(`${sel} .dgm-toggle-details:not([hidden]) input`);
+        if (box) {
+          const dots = await page.$$(`${sel} .dgm-dot`);
+          const withDetail = await page.$eval(sel, (f) => {
+            const d = JSON.parse(f.querySelector('.dgm-data').textContent);
+            const on = f.querySelector('.dgm-scn.is-on');
+            const scns = d.scenarios || [d.tour];
+            const sc = scns[on ? [...f.querySelectorAll('.dgm-scn')].indexOf(on) : 0];
+            const mode = (sc.modes || [{ id: 'default' }])[0].id;
+            return sc.steps.filter((x) => !x.when || x.when === mode).findIndex((x) => x.detail);
+          });
+          if (withDetail >= 0 && dots[withDetail]) {
+            const wasOn = await box.isChecked();
+            if (!wasOn) await box.click();
+            await dots[withDetail].click();
+            await page.waitForTimeout(2500);
+            const card = await page.$eval(`${sel} .dgm-banner`, (b) => ({ on: b.classList.contains('is-detailed'), len: b.querySelector('.dgm-banner-text').textContent.length }));
+            check(card.on && card.len > 60, `Details shows the step's longer description (${card.len} chars)`);
+            await fig.screenshot({ path: path.join(args.out, 'step-details.png') });
+            await box.click();
+            await page.waitForTimeout(300);
+            const off = await page.$eval(`${sel} .dgm-banner`, (b) => b.classList.contains('is-detailed'));
+            check(!off, 'unticking Details goes back to the short text');
+            if (wasOn) await box.click();
+          } else note('Details box shown, but the current use case has no step with `detail`');
+        } else note('no step has `detail`, so there is no Details box');
         // The last step of the first use case: its outcome is celebrated.
         await page.click(`${sel} .dgm-scn`).catch(() => {});
         await page.waitForTimeout(600);

@@ -202,18 +202,63 @@ scenarios:
     summary: "How a product page reaches the shopper."
     steps:
       - {title: Open the shop, action: "Customer → CDN: GET /products/mug (443)", text: "The browser opens the product page over HTTPS; the CDN has no cached copy.", edges: [c_cdn]}
-      - {title: Forward to the cluster, action: "CDN → Ingress → Web app: the page request", text: "The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.", path: [cdn_ing, ing_web]}
-      - {title: Fetch the product, action: "Web app ↔ API ↔ PostgreSQL: read the product", text: "The web app asks the API, which reads the product from PostgreSQL on 5432.", path: [web_api, api_pg, ~api_pg, ~web_api]}
-      - {title: Page returns, action: "Web app → Ingress → CDN → Customer: the page", text: "The rendered page travels back; the CDN caches it for the next shopper.", path: [~ing_web, ~cdn_ing, ~c_cdn], result: success, outcome: "Product page shown"}
+      - title: Forward to the cluster
+        action: 'CDN → Ingress → Web app: the page request'
+        text: The CDN forwards the miss over HTTPS; the ingress routes `/` to the web app on 3000.
+        path: [cdn_ing, ing_web]
+        detail: |
+          - The CDN has no fresh copy of `/products/mug`, so it opens its own HTTPS connection to the cluster on 443.
+          - The ingress ends TLS there and matches the path: `/` goes to the web app, `/api` to the API.
+          - Behind the ingress the hop is plain HTTP on port 3000, inside the cluster.
+      - title: Fetch the product
+        action: 'Web app ↔ API ↔ PostgreSQL: read the product'
+        text: The web app asks the API, which reads the product from PostgreSQL on 5432.
+        path: [web_api, api_pg, ~api_pg, ~web_api]
+        detail: |
+          The web app renders on the server, so it needs the product before it can send any HTML.
+
+          - Web app → API: `GET` on port 8080, inside the cluster.
+          - API → PostgreSQL: one read on 5432; the answer comes back the same way.
+          - Each hop waits for its reply, so a slow database makes the whole page slow.
+      - title: Page returns
+        action: 'Web app → Ingress → CDN → Customer: the page'
+        text: The rendered page travels back; the CDN caches it for the next shopper.
+        path: [~ing_web, ~cdn_ing, ~c_cdn]
+        result: success
+        outcome: Product page shown
+        detail: |
+          - The page goes back hop by hop: web app → ingress → CDN → browser.
+          - The CDN keeps a copy, so the next shopper who asks for this page is served from the edge and the cluster never sees the request.
   - id: checkout
     title: Place an order
     summary: "Checkout, payment and the confirmation email."
     steps:
-      - {title: Press Pay, action: "Customer → CDN → Ingress → API: POST /api/checkout", text: "The checkout call passes the CDN and the ingress to the API.", path: [c_cdn, cdn_ing, ing_api]}
+      - title: Press Pay
+        action: 'Customer → CDN → Ingress → API: POST /api/checkout'
+        text: The checkout call passes the CDN and the ingress to the API.
+        path: [c_cdn, cdn_ing, ing_api]
+        detail: |
+          - Checkout is never cached: the CDN passes `POST /api/checkout` straight to the cluster over HTTPS.
+          - The ingress routes `/api` to the API on 8080.
+          - Nothing is charged yet; the API first loads the cart (next step).
       - {title: Load the cart, action: "API ↔ Redis: read the session and cart", text: "The API reads the cart from Redis on 6379.", path: [api_redis, ~api_redis]}
-      - {title: Charge the card, action: "API ↔ Payments: create a charge (443)", text: "The API asks the payment provider to charge the card over HTTPS.", path: [api_pay, ~api_pay]}
+      - title: Charge the card
+        action: 'API ↔ Payments: create a charge (443)'
+        text: The API asks the payment provider to charge the card over HTTPS.
+        path: [api_pay, ~api_pay]
+        detail: |
+          - The API calls the payment provider over HTTPS on 443, with a secret API key in the `Authorization` header.
+          - The API waits for the provider's answer: the charge is accepted or declined.
+          - Settlement comes later, as a webhook (step 6).
       - {title: Save the order, action: "API ↔ PostgreSQL: insert the order", text: "The order is written to PostgreSQL.", path: [api_pg, ~api_pg]}
       - {title: Confirm to the shopper, action: "API → Ingress → CDN → Customer: order confirmed", text: "The confirmation page returns the way the request came.", path: [~ing_api, ~cdn_ing, ~c_cdn]}
-      - {title: Payment settles, action: "Payments → Ingress → API: signed webhook", text: "Later, the provider posts a signed webhook; the API marks the order paid.", path: [pay_hook, ing_hook]}
+      - title: Payment settles
+        action: 'Payments → Ingress → API: signed webhook'
+        text: Later, the provider posts a signed webhook; the API marks the order paid.
+        path: [pay_hook, ing_hook]
+        detail: |
+          - Later the provider posts a webhook to the shop's public address (443).
+          - Each call is signed; the API checks the signature before it trusts the call and marks the order paid.
+          - It is one-way: nothing travels back to the provider except the HTTP status.
       - {title: Queue the email, action: "API → Redis: add the order to the stream", text: "The API adds an event to the `orders` stream and moves on.", edges: [api_stream]}
       - {title: Send the email, action: "Worker → Email service: send the confirmation", text: "The worker reads the event and posts the email over HTTPS.", edges: [worker_mail], result: success, outcome: "Order placed and confirmed"}

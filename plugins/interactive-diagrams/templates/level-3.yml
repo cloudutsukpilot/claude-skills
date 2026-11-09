@@ -101,5 +101,11 @@ scenarios:
     steps:
       - {title: <User acts>, action: "<User → Frontend: GET / (443)>", text: "<What happens, naming protocol and port.>", edges: [u_fe]}
       - {title: <Call the backend>, action: "<Frontend ↔ Backend: …>", text: "<…>", path: [fe_be]}
-      - {title: <Read the data>, action: "<Backend ↔ Database: …>", text: "<…>", path: [be_db, ~be_db]}
+      - title: <Read the data>
+        action: "<Backend ↔ Database: …>"
+        text: "<What the step does and why, in 1 or 2 sentences.>"
+        path: [be_db, ~be_db]
+        detail: |
+          <Optional, 3 to 10 short lines shown with the Details box: what runs inside this step,>
+          <what it checks or decides, and what happens when it refuses.>
       - {title: <Response returns>, action: "<Backend → Frontend → User: …>", text: "<…>", path: [~fe_be, ~u_fe], result: success, outcome: "<What the user got>"}

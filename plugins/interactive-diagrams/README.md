@@ -7,7 +7,7 @@ validated, built and checked in a real browser. Three skills, each a tier that b
 |---|---|---|
 | 1 | [diagram-level-1](skills/diagram-level-1/SKILL.md) | Components nested in levels (level 0 = context; click to expand), pan and zoom, automatic ELK layout, icons or logos, a facts panel per component (status, summary, how, where, when, links, API), arrows with why, protocol:port pills, colours per kind and moving dots for streams |
 | 2 | [diagram-level-2](skills/diagram-level-2/SKILL.md) | Certificates on every arrow (issuer, validity, storage, trust) or why there is none; the full exchange on the wire as a looping sequence diagram (TCP → TLS 1.3 / mTLS → HTTP, gRPC, OIDC, Kafka, MQTT, SSH, WireGuard …); view tabs for cross-cutting arrows |
-| 3 | [diagram-level-3](skills/diagram-level-3/SKILL.md) | Guided use cases: a packet travels hop by hop and back, banners per step, success/fail outcomes, alternative modes; lock mode plays them on the reader's layout without opening groups; optional world-map backdrop |
+| 3 | [diagram-level-3](skills/diagram-level-3/SKILL.md) | Guided use cases: a packet travels hop by hop and back, a step card per step (short text, or a longer description with the Details box), success/fail outcomes, alternative modes; lock mode plays them on the reader's layout without opening groups; optional world-map backdrop |
 
 Example: [examples/web-shop](examples/web-shop/) — `diagram.yml` and the built `index.html`.
 
