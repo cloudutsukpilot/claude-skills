@@ -319,15 +319,24 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
         // Details: the box swaps the card's short text for the step's `detail` (3 to 10 lines).
         const box = await page.$(`${sel} .dgm-toggle-details:not([hidden]) input`);
         if (box) {
-          const dots = await page.$$(`${sel} .dgm-dot`);
-          const withDetail = await page.$eval(sel, (f) => {
+          // The first use case (and step, in its first mode) that has a `detail`.
+          const found = await page.$eval(sel, (f) => {
             const d = JSON.parse(f.querySelector('.dgm-data').textContent);
-            const on = f.querySelector('.dgm-scn.is-on');
             const scns = d.scenarios || [d.tour];
-            const sc = scns[on ? [...f.querySelectorAll('.dgm-scn')].indexOf(on) : 0];
-            const mode = (sc.modes || [{ id: 'default' }])[0].id;
-            return sc.steps.filter((x) => !x.when || x.when === mode).findIndex((x) => x.detail);
+            for (let i = 0; i < scns.length; i++) {
+              const mode = (scns[i].modes || [{ id: 'default' }])[0].id;
+              const k = scns[i].steps.filter((x) => !x.when || x.when === mode).findIndex((x) => x.detail);
+              if (k >= 0) return { i, k };
+            }
+            return null;
           });
+          const pickers = await page.$$(`${sel} .dgm-scn`);
+          if (found && pickers[found.i]) {
+            await pickers[found.i].click();
+            await page.waitForTimeout(1200);
+          }
+          const dots = await page.$$(`${sel} .dgm-dot`);
+          const withDetail = found ? found.k : -1;
           if (withDetail >= 0 && dots[withDetail]) {
             const wasOn = await box.isChecked();
             if (!wasOn) await box.click();
@@ -341,7 +350,7 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
             const off = await page.$eval(`${sel} .dgm-banner`, (b) => b.classList.contains('is-detailed'));
             check(!off, 'unticking Details goes back to the short text');
             if (wasOn) await box.click();
-          } else note('Details box shown, but the current use case has no step with `detail`');
+          } else note('Details box shown, but no use case has a step with `detail` in its first mode');
         } else note('no step has `detail`, so there is no Details box');
         // The last step of the first use case: its outcome is celebrated.
         await page.click(`${sel} .dgm-scn`).catch(() => {});
