@@ -2,6 +2,22 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.2.0 — 2026-11-09
+
+- Step card: the banner at the bottom of the canvas becomes a card with the step's number and title,
+  the banner line (`action`, then the outcome) and its description. The caption under the canvas now
+  shows the use case's title and summary.
+- `detail` on a step: 3 to 10 lines of Markdown, shown on the card instead of `text` when the reader
+  ticks **Details** in the player. `details: true` starts ticked; the reader's choice is remembered in
+  their browser. With Details on, auto-play stays long enough to read each detail (about 250 words a
+  minute, at most 25 s, scaled by the speed button).
+- The camera frames each step's components above the card.
+- `validate.py`: `details` must be true or false; `detail` length (3 to 10 lines, under ~160 words),
+  not a copy of `text`; a use case with no `detail` warns.
+- `preview.cjs`: checks the card's title and description, ticks Details on a step with `detail` and
+  saves `step-details.png`.
+- `examples/web-shop`: `detail` on six steps.
+
 ## interactive-diagrams 1.1.0 — 2026-11-09
 
 - Lock mode for use cases: a padlock in the player (or `lock: true` in `diagram.yml`) plays every

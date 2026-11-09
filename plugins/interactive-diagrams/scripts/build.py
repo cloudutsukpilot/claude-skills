@@ -83,7 +83,8 @@ def fallback(data):
         out.append(f"<p><strong>{e(sc.get('title', 'Tour'))}</strong>{summary}</p><ol>")
         for st in sc.get("steps") or []:
             when = f" ({e(st['when'])})" if st.get("when") else ""
-            out.append(f"<li><strong>{e(st.get('title'))}</strong>{when}: {e(st.get('text'))}</li>")
+            more = " " + e(" ".join(str(st["detail"]).split())) if st.get("detail") else ""
+            out.append(f"<li><strong>{e(st.get('title'))}</strong>{when}: {e(st.get('text'))}{more}</li>")
         out.append("</ol>")
     return "\n".join(out)
 
@@ -102,6 +103,7 @@ def figure(data, name):
 <button type="button" class="dgm-btn dgm-btn-lock" data-act="lock" aria-pressed="false" aria-label="Lock layout"><i class="fas fa-lock-open" aria-hidden="true"></i></button>
 <div class="dgm-dots" role="group" aria-label="Steps"></div>
 <label class="dgm-toggle-mode" hidden><input type="checkbox" data-act="mode"> <span></span></label>
+<label class="dgm-toggle-details" hidden title="Show each step's longer description"><input type="checkbox" data-act="details"> <span>Details</span></label>
 </div>""" if has_story else ""
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
     map_data = ""

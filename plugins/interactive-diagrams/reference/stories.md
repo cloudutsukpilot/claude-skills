@@ -19,7 +19,13 @@ scenarios:
     modes: [{id: normal, label: Normal}, {id: declined, label: "Simulate a declined card"}]   # optional
     steps:
       - {title: Press Pay, action: "Browser → CDN → API: POST /checkout", text: "…", path: [u_cdn, cdn_api]}
-      - {title: Load the cart, action: "API ↔ Redis: read the cart", text: "…", path: [api_redis, ~api_redis]}
+      - title: Load the cart
+        action: "API ↔ Redis: read the cart"
+        text: "…"
+        path: [api_redis, ~api_redis]
+        detail: |                                    # optional: shown with the Details box
+          - The API reads the session key from the cookie and loads the cart from Redis on 6379.
+          - An empty or expired cart stops the checkout here, before any charge.
       - {title: Card declined, action: "Payments → API: declined", text: "…", when: declined,
          path: [api_pay, ~api_pay], result: fail, outcome: "Payment declined"}
       - {title: Confirm, action: "API → CDN → Browser: confirmation", text: "…", when: normal,
@@ -39,9 +45,23 @@ Rules:
   Mark fire-and-forget arrows `oneway: true`; the validator flags any other request whose response
   never comes back.
 - **A banner line on every step:** `action`, under ~90 characters, saying what is happening right now
-  ("API ↔ PostgreSQL: insert the order").
-- **`title`** (2 to 5 words) and **`text`** (1 or 2 sentences, under ~200 characters) on every step,
-  naming the protocol and port where it matters.
+  ("API ↔ PostgreSQL: insert the order"). It is the bold line on the step card.
+- **`title`** (2 to 5 words) and **`text`** (1 or 2 sentences, under ~230 characters) on every step,
+  naming the protocol and port where it matters. `text` says what the step does and why, not only
+  where the packet goes ("The API asks the provider to charge the card; nothing is saved until it
+  answers"), so the step card makes sense without opening anything.
+- **`detail` for the steps that need explaining:** 3 to 10 short lines (under ~160 words) of
+  Markdown: sentences, `- ` lines for a list, a blank line between paragraphs, `code` for names. It
+  shows on the step card instead of `text` when the reader ticks **Details** in the player
+  (`details: true` at the top level starts with it ticked; the reader's choice is remembered in their
+  browser). Say what happens inside the step that the arrow can't show: which function or check
+  runs, what it decides, what happens when it refuses, and what the next step depends on. Don't
+  repeat `text` or the arrow's `why`. Auto-play stays on a step long enough to read its detail
+  (about 250 words a minute, at most 25 s; the speed button scales it). Give every use case at least
+  one; the validator warns when a use case has none.
+- **The step card** at the bottom of the canvas shows, for the current step: its number and
+  `title`, the banner line (`action`, then the outcome), and `text` or `detail`. The caption under
+  the canvas shows the use case's title and summary.
 - **End with the outcome:** the last step of each use case (and of each mode) has `result: success`,
   `done` or `fail` plus a short `outcome`. The engine celebrates at the last hop's target (`at: <id>`
   overrides): confetti and a check for success, a red cross and a shake for fail.

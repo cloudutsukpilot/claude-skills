@@ -40,8 +40,9 @@ For a map: the region of each component.
 
 Follow `PLUGIN/reference/structure.md`, `PLUGIN/reference/connections.md`, then
 `PLUGIN/reference/stories.md`: one activity per use case, one action per step, every reply travels
-back (`~id`), every step has `title`, `action` and `text`, and the last step has `result` and
-`outcome`. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
+back (`~id`), every step has `title`, `action` and `text` (1 or 2 sentences: what the step does
+and why), the steps that need explaining have `detail` (3 to 10 lines, shown with the player's
+Details box), and the last step has `result` and `outcome`. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
 cases should play on the start level without opening groups (the reader can toggle the padlock).
 
 ## 3. Write
@@ -63,7 +64,8 @@ must show their response or be `oneway`).
 
 Run `setup.sh` and `preview.cjs` as in `workflow.md` step 6. Read `light-desktop-level1.png`, the
 deepest level, `panel.png`, `card.png`, `edge-panel.png`, the `view-*.png` files, `step-next.png`
-(a packet on its arrow and the banner), `step-locked.png` (lock mode: the same packet on the
+(a packet on its arrow and the step card), `step-details.png` (the card with Details ticked: the
+longer description, readable, not covering the packet), `step-locked.png` (lock mode: the same packet on the
 reader's layout, nothing opened) and `outcome.png`.
 
 ## 7. Report
