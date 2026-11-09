@@ -53,6 +53,12 @@ Rules:
 - Pick use cases from what the system is for: signing in, the main request, a deploy, an alert, a
   batch job, a failure path. 2 to 6 use cases is typical.
 - A single legacy `tour:` (`{title, steps}`) still works as one use case.
+- **Lock mode.** The padlock in the player (or `lock: true` at the top level) plays use cases on the
+  reader's layout: their level, the components they opened and their view tab. Nothing opens or
+  closes; the camera still moves to each step. A packet aimed inside a closed component travels to
+  that component; a hop with both ends inside one closed component, or on an arrow the tab hides,
+  pulses the component and the banner says so ("· inside Backend"). Set `lock: true` when the
+  use cases read well at the start `level` and opening groups would distract.
 
 ## 2. Geo backdrop (optional)
 

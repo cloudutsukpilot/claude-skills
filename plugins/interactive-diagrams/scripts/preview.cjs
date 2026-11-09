@@ -248,6 +248,54 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
         else note(`the first use case uses every open group (${before} open)`);
         check(after === before, `rewinding the use case restores the reader's layout (${after} of ${before} open groups)`);
       }
+      // Lock mode: on level 1 with one group opened by hand, a use case plays without opening or
+      // closing anything and without moving a component; the packet (or a pulse) still runs.
+      if (info.tour && (await page.$(`${sel} [data-act="lock"]`))) {
+        const lvls = await page.$$(`${sel} .dgm-lvl`);
+        await lvls[Math.min(1, lvls.length - 1)].click();
+        await page.waitForFunction((s) => !document.querySelector(`${s}.is-stepping`), sel, { timeout: 20000 }).catch(() => {});
+        await page.waitForTimeout(900);
+        const closed = await page.$(`${sel} .dgm-node.is-collapsible`);
+        if (closed) {
+          await closed.click();
+          await page.waitForTimeout(1200);
+        }
+        const layout = () =>
+          page.$eval(sel, (f) => ({
+            open: [...f.querySelectorAll('.dgm-group')].map((g) => g.dataset.id).sort().join(','),
+            pos: [...f.querySelectorAll('.dgm-node')].map((n) => `${n.dataset.id}@${n.style.transform}`).sort().join('|'),
+          }));
+        const before = await layout();
+        await page.click(`${sel} [data-act="lock"]`);
+        await page.waitForTimeout(300);
+        check(await page.$eval(`${sel} [data-act="lock"]`, (b) => b.getAttribute('aria-pressed') === 'true'), 'the padlock turns lock mode on');
+        await page.click(`${sel} .dgm-scn`).catch(() => {});
+        await page.waitForTimeout(600);
+        const steps = Math.min(4, (await page.$$(`${sel} .dgm-dot`)).length);
+        let same = true;
+        let moved = false;
+        for (let i = 0; i < steps; i++) {
+          await page.click(`${sel} [data-act="next"]`);
+          const ran = await page
+            .waitForFunction((s) => document.querySelector(`${s} .dgm-pointer, ${s} .is-pulsing`), sel, { timeout: 6000, polling: 50 })
+            .then(() => true, () => false);
+          moved ||= ran;
+          if (i === 0) await fig.screenshot({ path: path.join(args.out, 'step-locked.png') });
+          await page.waitForTimeout(2200);
+          const now = await layout();
+          same &&= now.open === before.open && now.pos === before.pos;
+        }
+        check(same, `lock mode keeps the layout through ${steps} step(s) (open groups: ${before.open || 'none'})`);
+        check(moved, 'lock mode still moves a packet (or pulses a closed component)');
+        for (let i = 0; i <= steps; i++) {
+          await page.click(`${sel} [data-act="prev"]`);
+          await page.waitForTimeout(150);
+        }
+        await page.waitForTimeout(1200);
+        check((await layout()).open === before.open, 'rewinding a locked use case leaves the layout as it was');
+        await page.click(`${sel} [data-act="lock"]`);
+        await page.waitForTimeout(600);
+      }
       // Use cases: the picker switches scenario, and Next animates a packet along the step.
       if (info.tour) {
         const scn = await page.$$(`${sel} .dgm-scn`);
