@@ -2,6 +2,17 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.3.0 — 2026-11-10
+
+- Step card with Details on: the card moves out of the canvas and sits under it at the figure's full
+  width, shows the whole description without a scroll box and covers no component (the camera no
+  longer keeps room for it). With Details off it floats at the canvas bottom as before. In full
+  screen a long description scrolls inside the card.
+- `reference/stories.md`: how to write `detail` for a semi-technical reader (What happens / Why it
+  matters / How, the function named in `code`, terms explained, gaps stated) and `details: true`.
+- `preview.cjs`: checks the card sits under the canvas at full width with Details on, and back on the
+  canvas with it off.
+
 ## interactive-diagrams 1.2.0 — 2026-11-09
 
 - Step card: the banner at the bottom of the canvas becomes a card with the step's number and title,

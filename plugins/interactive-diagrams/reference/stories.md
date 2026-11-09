@@ -59,9 +59,22 @@ Rules:
   repeat `text` or the arrow's `why`. Auto-play stays on a step long enough to read its detail
   (about 250 words a minute, at most 25 s; the speed button scales it). Give every use case at least
   one; the validator warns when a use case has none.
-- **The step card** at the bottom of the canvas shows, for the current step: its number and
-  `title`, the banner line (`action`, then the outcome), and `text` or `detail`. The caption under
-  the canvas shows the use case's title and summary.
+- **`detail` for a semi-technical reader** (leadership, product, a new team member), when the
+  diagram is for them: give every step one, and write it as three short paragraphs with bold
+  leads, each one or two plain sentences:
+  - `**What happens:**` the function or check that runs, in `code` (`check_action()`), and what it
+    does in everyday words;
+  - `**Why it matters:**` the risk it removes or the guarantee it gives (cost, safety, audit, a
+    person in the loop);
+  - `**How:**` the mechanism and its numbers (limits, retries, timeouts), or a short `- ` list.
+  Explain each term the first time it appears ("Temporal, the workflow engine that remembers how
+  far each run got"), say known gaps plainly, and set `details: true` so the card opens with them.
+- **The step card** shows, for the current step: its number and `title`, the banner line
+  (`action`, then the outcome), and `text` or `detail`. With Details off it floats at the bottom of
+  the canvas; with Details on it sits under the canvas at the figure's full width, shows the whole
+  description without scrolling and covers no component (in full screen it scrolls inside the card
+  past about a quarter of the screen). The caption under the canvas shows the use case's title and
+  summary.
 - **End with the outcome:** the last step of each use case (and of each mode) has `result: success`,
   `done` or `fail` plus a short `outcome`. The engine celebrates at the last hop's target (`at: <id>`
   overrides): confetti and a check for success, a red cross and a shake for fail.

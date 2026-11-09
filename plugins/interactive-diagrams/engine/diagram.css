@@ -1209,6 +1209,29 @@
   left: calc((100% - min(360px, 92%)) / 2);
 }
 
+.dgm .dgm-banner.is-below {
+  position: static;
+  width: auto;
+  margin-top: 0.5rem;
+  box-shadow: none;
+  font-size: 0.9rem;
+  transform: none;
+  transition: border-color 0.25s ease;
+}
+.dgm .dgm-banner.is-below:not(.is-on) {
+  display: none;
+}
+.dgm .dgm-banner.is-below .dgm-banner-head {
+  font-size: 0.8rem;
+}
+.dgm .dgm-banner.is-below .dgm-banner-text {
+  max-height: none;
+  overflow: visible;
+}
+.dgm .dgm-banner.is-below .dgm-banner-text p {
+  margin-bottom: 0.45rem;
+}
+
 .dgm-pointer.is-back .dgm-halo {
   fill: #22c55e;
 }
@@ -1350,8 +1373,13 @@
 }
 .dgm.is-full .dgm-legend,
 .dgm.is-full .dgm-caption,
-.dgm.is-full .dgm-controls {
+.dgm.is-full .dgm-controls,
+.dgm.is-full .dgm-banner.is-below {
   flex: none;
+}
+.dgm.is-full .dgm-banner.is-below .dgm-banner-text {
+  max-height: 24vh;
+  overflow-y: auto;
 }
 
 body.dgm-full-open {
