@@ -2,6 +2,18 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## software-factory 0.1.0 — 2026-11-19
+
+- New plugin. `/factory` (skill `software-factory:factory`) runs feature files from `docs/features/`
+  through intake → spec → build → gate → routed reviewers → approver, and ends each as a reviewed pull
+  request that you merge; the factory never merges.
+- Agents: `intake`, `spec-writer`, `builder`, `reviewer` (lenses `code`, `security`, `ui`, `infra`,
+  `docs`), `approver`.
+- `scripts/factory.py`: the only writer of job state; refuses illegal moves; worktrees, the gate
+  (`.factory/checks.sh`, protected paths, merge conflicts), push and draft PR, `escalate_paths`, sync.
+- Standard formats: feature files (`reference/feature-format.md`) and per-repo `.factory/`
+  (`reference/repo-setup.md`).
+
 ## interactive-diagrams 1.3.0 — 2026-11-10
 
 - Step card with Details on: the card moves out of the canvas and sits under it at the figure's full

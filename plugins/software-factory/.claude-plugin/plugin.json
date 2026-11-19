@@ -1,0 +1,13 @@
+{
+  "name": "software-factory",
+  "version": "0.1.0",
+  "description": "A software factory for any repo: feature files in docs/features/ go through intake, spec, build, the repo's own checks, routed reviewers and an approver, and each ends as a reviewed pull request that you merge.",
+  "author": {
+    "name": "Sakharam Shinde",
+    "url": "https://github.com/cloudutsukpilot"
+  },
+  "homepage": "https://github.com/cloudutsukpilot/claude-skills/tree/main/plugins/software-factory",
+  "repository": "https://github.com/cloudutsukpilot/claude-skills",
+  "license": "MIT",
+  "keywords": ["agents", "software-factory", "code-review", "pull-requests", "workflow"]
+}
