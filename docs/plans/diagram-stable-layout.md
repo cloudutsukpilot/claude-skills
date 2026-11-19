@@ -46,7 +46,7 @@ Closing it moves them back exactly.
 
 | Phase | Status | PRs | Left |
 |---|---|---|---|
-| 1. Plugin engine: stable layout, router, camera, `layout: auto`, validator, docs, version 1.4.0 | In progress (2026-11-20) | — | Built and previewed (web-shop: 59 checks; platform system-architecture: every level, stable checks pass); PR open, waiting for merge, then tag `interactive-diagrams-v1.4.0` |
+| 1. Plugin engine: stable layout, router, camera, `layout: auto`, validator, docs, version 1.4.0 | In progress (2026-11-20) | #10 | Built and previewed (web-shop: 59 checks; platform system-architecture: every level, stable checks pass); PR open, waiting for merge, then tag `interactive-diagrams-v1.4.0` |
 | 2. Install the new plugin version on the Spark (`claude plugin` update) | Planned | — | After phase 1 merges |
 | 3. Blog engine and `cloudutsuk-diagram` skill docs | Planned | — | Copy the engine, rebuild and preview a blog diagram, PR in `sakharams.github.io` |
 
