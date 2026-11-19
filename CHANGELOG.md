@@ -2,6 +2,22 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.4.0 — 2026-11-20
+
+- Stable layout, the new default for every level: opening or closing a component no longer lays out the
+  whole diagram again. Each container's children are placed once (ELK, as closed components, with
+  every arrow lifted to them); an opened component grows around its own center and only the components
+  it would touch are pushed straight away from it, cascading outward. The component you opened stays
+  at the same place on screen: the camera doesn't pan, and zooms out around it only if it no longer
+  fits. Closing it puts everything back exactly.
+- New orthogonal arrow router for the stable layout (A* around the components, fewest bends, parallel
+  arrows in their own lanes) and pill placement that avoids other pills and components. An arrow's
+  label now sits just above its pill.
+- `layout: auto` keeps the old behaviour (full ELK relayout on every change). `map:` diagrams are
+  unchanged.
+- `preview.cjs` checks the stable layout: the opened component stays put on screen, the others stay
+  on their side of it, and closing it restores every position.
+
 ## software-factory 0.1.1 — 2026-11-19
 
 - `/factory run` trusts the queue: a `new` row becomes a job and a `resume` row is driven from its stage. The orchestrator no longer guesses from git

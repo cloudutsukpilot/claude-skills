@@ -65,7 +65,9 @@ CHROME=$CHROME node "$PLUGIN/scripts/preview.cjs" --url "file://$PWD/diagrams/<n
 
 `setup.sh` prints `SETUP FAILED: …` with the fix when npm or a Chromium is missing (for example
 `cd ~/.cache/interactive-diagrams && npx playwright-core install chromium`). The preview checks, in
-light, dark and phone views: layout at every level with no overlapping components, expand on click,
+light, dark and phone views: layout at every level with no overlapping components, expand on click
+(with the stable layout: the opened component stays put on screen, the others stay on their side of it,
+and closing it puts every component back),
 the hover card, the component panel, the arrow panel (exchange first, certificates below), view tabs,
 zoom, the start level, the use cases, fullscreen and no script errors. It exits 1 on any failure.
 
