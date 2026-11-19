@@ -11,12 +11,10 @@ itself, and it never edits `job.json`: `factory.py` is its only writer and refus
 
 ## 0. Paths
 
-`PLUGIN` = two folders above this skill's base directory. Every command below runs from the repo's
-main checkout (the user's current repo), as:
-
-```bash
-F="python3 $PLUGIN/scripts/factory.py"
-```
+`PLUGIN` = two folders above this skill's base directory. Below, `factory.py <command>` means
+`python3 <PLUGIN>/scripts/factory.py <command>` with the absolute path written out, run from the repo's
+main checkout (the user's current repo). Write the full command each time: a shell variable holding a
+command (`F="python3 …"; $F queue`) doesn't split into words in zsh.
 
 Reference, read when needed: `$PLUGIN/reference/feature-format.md` (the queue's files),
 `$PLUGIN/reference/repo-setup.md` (`.factory/`, checks, config, lenses).
@@ -46,9 +44,9 @@ feature (docs/features/NNN-slug.md, status: ready on the base branch)
 | approve | `software-factory:approver` | `models.approver` | `decision.md` |
 
 If the Agent tool lists the plugin's agents under different names, use the listed name for the same
-agent. Pass `model` from the job (`$F status <job>` prints `models` and `reviewers`).
+agent. Pass `model` from the job (`factory.py status <job>` prints `models` and `reviewers`).
 
-**Every agent prompt** is the output of `$F prompt <job> <role>` (role: `intake`, `spec-writer`,
+**Every agent prompt** is the output of `factory.py prompt <job> <role>` (role: `intake`, `spec-writer`,
 `builder`, `reviewer`, `approver`), followed by one line for the step:
 
 | Role | Line after the paths |
@@ -69,7 +67,7 @@ you need it to report or decide.
 
 Set the current repo up (`reference/repo-setup.md`):
 
-1. `$F init-check` lists what is missing.
+1. `factory.py init-check` lists what is missing.
 2. Create `.factory/.gitignore` (from `$PLUGIN/templates/gitignore`), `.factory/checks.sh` (from
    `templates/checks.sh`, then replace its placeholder with the repo's real checks: read AGENTS.md /
    CLAUDE.md, the Makefile, `package.json`, `pyproject.toml` and `.github/workflows/` and use what CI
@@ -91,39 +89,44 @@ user names): only features on the base branch run.
 
 ### /factory run [<feature>]
 
-1. `$F sync`, then `$F queue`. It prints `concurrency C, active A` and one row per job or feature:
+1. `factory.py sync`, then `factory.py queue`. It prints `concurrency C, active A` and one row per job or feature:
    `resume` (unfinished job), `wait` (waiting for the user: list these, don't touch them), `new`
    (ready feature with no job).
-2. With `<feature>` given, work only on that one (`$F create <feature>` if it has no job).
-3. Otherwise resume every `resume` job, then start `new` features in order with `$F create <feature>`,
+   **Trust the queue.** A `new` row is a ready feature with no job: create the job. A `resume` row is a job
+   to drive from its stage. Never skip one because git history, the code or the feature's age suggests it
+   is already built: the commit and PR that *added the feature file* carry the feature's title too, and
+   they changed nothing but `docs/features/`. Deciding whether it already exists is intake's job (it reads
+   the code and can REJECT); yours is to run it.
+2. With `<feature>` given, work only on that one (`factory.py create <feature>` if it has no job).
+3. Otherwise resume every `resume` job, then start `new` features in order with `factory.py create <feature>`,
    keeping at most `concurrency` jobs moving at once. Spawn agents as background agents so jobs
    progress in parallel; drive each job by its stage (section 3) whenever one of its agents finishes.
-4. When nothing is left to move, print `$F status` and, for each job waiting on the user, one line:
+4. When nothing is left to move, print `factory.py status` and, for each job waiting on the user, one line:
    the job, its stage, the PR link, and what is needed.
 
 ### /factory status
 
-`$F status` (its last column is each job's PR link). For one job, `$F status <job>` and the first lines of
+`factory.py status` (its last column is each job's PR link). For one job, `factory.py status <job>` and the first lines of
 its newest file.
 
 ### /factory answer <job> <text>
 
-For a `needs-info` job: `echo "<text, verbatim>" | $F answer <job>`, then `$F advance <job> intake`,
+For a `needs-info` job: `echo "<text, verbatim>" | factory.py answer <job>`, then `factory.py advance <job> intake`,
 then run the job from **intake**.
 
 ### /factory feedback <job> <text>
 
-For a `recommended` or `needs-human` job: `echo "<text, verbatim>" | $F feedback <job>`, then run the
+For a `recommended` or `needs-human` job: `echo "<text, verbatim>" | factory.py feedback <job>`, then run the
 job from **build** (a fresh round budget).
 
 ### /factory reject <job> <reason>
 
-`echo "<reason>" | $F reject <job>`: closes its PR and removes its worktree. Tell the user to set the
+`echo "<reason>" | factory.py reject <job>`: closes its PR and removes its worktree. Tell the user to set the
 feature file's status to `rejected` (or back to `draft`) on the base branch so it isn't queued again.
 
 ### /factory sync
 
-`$F sync`: jobs whose PR was merged or closed move to `merged` / `closed`, and their worktrees and
+`factory.py sync`: jobs whose PR was merged or closed move to `merged` / `closed`, and their worktrees and
 local branches go.
 
 ## 3. Driving one job, by stage
@@ -133,19 +136,19 @@ doesn't justify the move: re-run that agent once with the refusal quoted; if it 
 the job and tell the user.
 
 - **intake**: spawn intake. Read the first line of `intake.md`:
-  `ACCEPT` → `$F advance <job> spec`; `NEEDS-INFO` → `$F advance <job> needs-info` and tell the user
-  the questions (the `## Questions` section); `REJECT` → `$F advance <job> rejected` and tell the user
+  `ACCEPT` → `factory.py advance <job> spec`; `NEEDS-INFO` → `factory.py advance <job> needs-info` and tell the user
+  the questions (the `## Questions` section); `REJECT` → `factory.py advance <job> rejected` and tell the user
   why.
-- **spec**: spawn spec-writer, then `$F advance <job> build`.
+- **spec**: spawn spec-writer, then `factory.py advance <job> build`.
 - **build**: spawn builder (first round, or later with the reason). Then read the first line of
-  `build.md`: `STATUS: READY` → `$F advance <job> gate` (pushes and opens the draft PR);
-  `STATUS: BLOCKED` → `$F advance <job> needs-human` and quote the `## Blocked` section to the user.
-- **gate**: `$F gate <job>`. It runs the checks and moves the job to `review`, back to `build` (spawn
+  `build.md`: `STATUS: READY` → `factory.py advance <job> gate` (pushes and opens the draft PR);
+  `STATUS: BLOCKED` → `factory.py advance <job> needs-human` and quote the `## Blocked` section to the user.
+- **gate**: `factory.py gate <job>`. It runs the checks and moves the job to `review`, back to `build` (spawn
   the builder with `Reason: gate failed in round-N`) or to `needs-human`.
 - **review**: spawn one reviewer per lens in `reviewers`, **all in one message**, so they run in
-  parallel. **Wait for all of them**; never start the builder mid-round. Then `$F review-done <job>`:
+  parallel. **Wait for all of them**; never start the builder mid-round. Then `factory.py review-done <job>`:
   → `approve`, `build` (spawn the builder with `Reason: review changes in round-N`) or `needs-human`.
-- **approve**: spawn approver, then `$F finish <job>`: marks the PR ready, posts the decision on it,
+- **approve**: spawn approver, then `factory.py finish <job>`: marks the PR ready, posts the decision on it,
   and moves the job to `recommended` or `needs-human` (it escalates on its own when the change touches
   `escalate_paths`).
 - **needs-info / recommended / needs-human**: waiting for the user. Don't move it.

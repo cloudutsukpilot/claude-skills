@@ -2,6 +2,14 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## software-factory 0.1.1 — 2026-11-19
+
+- `/factory run` trusts the queue: a `new` row becomes a job and a `resume` row is driven from its stage. The orchestrator no longer guesses from git
+  history that a feature is already built (the commit that added the feature file named it, so the first
+  real run on a repo started nothing). Intake still rejects a feature that already exists.
+- The skill writes the script's full command each time instead of `F="python3 …"; $F …`, which doesn't
+  split into words in zsh.
+
 ## software-factory 0.1.0 — 2026-11-19
 
 - New plugin. `/factory` (skill `software-factory:factory`) runs feature files from `docs/features/`
