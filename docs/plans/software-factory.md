@@ -47,10 +47,10 @@ What differs from it:
 | Phase | Status | PRs | What is left |
 |---|---|---|---|
 | 1. Plugin: skill, agents, `factory.py`, feature format, README | Done (2026-11-19) | #6 | Merged, tagged `software-factory-v0.1.0`, installed with `claude plugin install software-factory@cloudutsuk` (scope user). Tested: `claude plugin validate`; a scripted run of every stage of `factory.py` (refusals, routing, protected-path gate failure, feedback round, sync); one real headless `/factory run` on a scratch repo with a stub `gh` (intake → spec → build → gate → review → approver → recommended, correct code and test) |
-| 2. Onboard the first repo (`.factory/` + `docs/features/`) and run one real feature | In progress (2026-11-19): pilot job-hunter-agent | job-hunter-agent#60 (setup) | Merge the setup PR, write the first feature, run `/factory run` in a new session |
+| 2. Onboard the first repo (`.factory/` + `docs/features/`) and run one real feature | In progress (2026-11-19): pilot job-hunter-agent | job-hunter-agent#60 (setup, merged 2026-11-19) | Write the first feature, run `/factory run` in a new session |
 | 3. Onboard the other platform repos (GitOps, services, portal, IaC) with their checks and lenses | Planned | — | After the pilot |
 | 4. Extras: dashboard page, cost per job, features that span repos | Planned | — | Only if the pilot shows a need |
 
 ### Waiting on the owner
 
-- Merge job-hunter-agent#60 and pick the first feature for the pilot.
+- Pick the first feature for the pilot on job-hunter-agent.
