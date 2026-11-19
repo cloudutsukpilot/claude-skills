@@ -92,9 +92,11 @@ user names): only features on the base branch run.
 1. `factory.py sync`, then `factory.py queue`. It prints `concurrency C, active A` and one row per job or feature:
    `resume` (unfinished job), `wait` (waiting for the user: list these, don't touch them), `new`
    (ready feature with no job).
-   **Trust the queue.** A `new` row is a ready feature with no job: create the job. Don't judge from git
-   history, the code or the feature's age whether it is already built (the commit that added the feature
-   file names it too); intake reads the code and rejects a feature that already exists.
+   **Trust the queue.** A `new` row is a ready feature with no job: create the job. A `resume` row is a job
+   to drive from its stage. Never skip one because git history, the code or the feature's age suggests it
+   is already built: the commit and PR that *added the feature file* carry the feature's title too, and
+   they changed nothing but `docs/features/`. Deciding whether it already exists is intake's job (it reads
+   the code and can REJECT); yours is to run it.
 2. With `<feature>` given, work only on that one (`factory.py create <feature>` if it has no job).
 3. Otherwise resume every `resume` job, then start `new` features in order with `factory.py create <feature>`,
    keeping at most `concurrency` jobs moving at once. Spawn agents as background agents so jobs
