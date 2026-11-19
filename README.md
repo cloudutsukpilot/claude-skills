@@ -57,6 +57,7 @@ marketplace and the plugin:
 | Plugin | Skills | What it makes | Needs |
 |---|---|---|---|
 | [interactive-diagrams](plugins/interactive-diagrams/) | `diagram-level-1`, `diagram-level-2`, `diagram-level-3` | Explorable architecture diagrams as one self-contained HTML page | Python 3 + PyYAML; Node + Chromium for the browser check |
+| [software-factory](plugins/software-factory/) | `factory` | Feature files in `docs/features/` built into reviewed pull requests by agents (intake, spec, build, review, approve); never merges | `python3`, `git`, authenticated `gh` |
 
 ### interactive-diagrams: which level?
 

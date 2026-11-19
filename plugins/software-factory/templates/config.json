@@ -1,0 +1,25 @@
+{
+  "base_branch": "main",
+  "concurrency": 2,
+  "max_rounds": 3,
+  "models": {
+    "intake": "opus",
+    "spec-writer": "opus",
+    "builder": "opus",
+    "approver": "opus"
+  },
+  "routing": {
+    "low": { "code": "sonnet" },
+    "medium": { "code": "sonnet" },
+    "high": { "code": "opus" }
+  },
+  "surface_reviewers": {
+    "ui": "sonnet",
+    "security": "opus",
+    "infra": "opus",
+    "docs": "sonnet"
+  },
+  "always_reviewers": [],
+  "protected_paths": [".factory/**", ".github/workflows/**"],
+  "escalate_paths": []
+}
