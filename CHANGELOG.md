@@ -2,6 +2,18 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.6.0 — 2026-11-21
+
+- Bands for flow diagrams: `bands:` (top level or a group) lists horizontal swimlanes, `band:` puts a
+  component in one. The main band keeps the main path in rows; every other band is a single row in the
+  order written, each component slid under the components it connects to, so arrows run straight down
+  between bands instead of converging in the middle of the main row. Labelled top-level bands are drawn
+  as swimlanes with a header column (light and dark), and Fit includes them.
+- Hubs: in a flow container with no `band:` set, a component that receives arrows from 3 or more
+  siblings and leads to at most one moves to its own band below the main path (`hubs: false` keeps
+  it in place).
+- The validator checks `bands`, `band` and `hubs`.
+
 ## interactive-diagrams 1.5.0 — 2026-11-21
 
 - `arrange: flow` (top level, or `arrange:` on one group): components are laid out like a flowchart

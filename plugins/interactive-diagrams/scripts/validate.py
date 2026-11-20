@@ -194,6 +194,54 @@ def validate(data, path, level=None):
     no_facts, no_status = [], []
     for n in data["nodes"]:
         walk(n, None, 0)
+
+    # Bands: `bands:` on the top level or a group (horizontal swimlanes of a flow container), `band:`
+    # on a component (one of its parent's bands), `hubs: false` to keep hubs in the main band.
+    def band_ids(owner, where):
+        bl = owner.get("bands")
+        if bl is None:
+            return None
+        if not isinstance(bl, list) or not bl:
+            E(f"{where}: `bands` must be a list of {{id, label?, main?}}")
+            return set()
+        ids, mains = set(), 0
+        for b in bl:
+            b = {"id": b} if isinstance(b, str) else b
+            if not isinstance(b, dict) or not b.get("id"):
+                E(f"{where}: every band needs an `id`")
+                continue
+            if b["id"] in ids:
+                E(f"{where}: duplicate band `{b['id']}`")
+            ids.add(b["id"])
+            mains += bool(b.get("main"))
+            for k in b:
+                if k not in ("id", "label", "main"):
+                    E(f"{where}: band `{b['id']}`: unknown key `{k}` (use id, label, main)")
+        if mains > 1:
+            E(f"{where}: only one band can be `main`")
+        flow = (owner.get("arrange") or data.get("arrange")) == "flow"
+        if not flow:
+            W(f"{where}: `bands` only applies with `arrange: flow`")
+        if where != "top level" and any(isinstance(b, dict) and b.get("label") for b in bl):
+            W(f"{where}: band labels are drawn for the top level only")
+        return ids
+
+    def check_bands(owner, kids, where):
+        ids = band_ids(owner, where)
+        for k in kids or []:
+            if "band" in k:
+                if ids is None:
+                    E(f"`{k.get('id')}`: band `{k['band']}` but {where} has no `bands:` list")
+                elif k["band"] not in ids:
+                    E(f"`{k.get('id')}`: unknown band `{k['band']}` (bands of {where}: {', '.join(sorted(ids))})")
+            if k.get("children"):
+                check_bands(k, k["children"], f"group `{k.get('id')}`")
+            elif "bands" in k:
+                W(f"`{k.get('id')}`: bands only affect groups (components with children)")
+        if "hubs" in owner and not isinstance(owner["hubs"], bool):
+            E(f"{where}: `hubs` must be true or false")
+
+    check_bands(data, data["nodes"], "top level")
     if no_facts:
         shown = ", ".join(f"`{x}`" for x in no_facts[:8]) + (f" and {len(no_facts) - 8} more" if len(no_facts) > 8 else "")
         W(f"{len(no_facts)} component(s) without `facts` (summary, how, url/api; where, when): {shown}")

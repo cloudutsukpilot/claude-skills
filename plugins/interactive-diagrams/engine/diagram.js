@@ -445,6 +445,7 @@
   // overlapping parallel segments of different arrows are spread into lanes.
   // boxes: Map id -> {x, y, w, h}; routes: [{key, from, to, skip: Set of ids that don't block it}].
   const ROUTE_M = 10; // clearance around a box
+  const BAND_LABEL_W = 168; // the band header column on the left of a top level with labelled bands
   const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]]; // east, south, west, north
   function routeOrtho(boxes, routes, flow = 'right') {
     const M = ROUTE_M;
@@ -808,6 +809,7 @@
       this.view = make('g', { class: 'dgm-view' }, this.svg);
       this.defs = make('defs', {}, this.svg);
       if (this.data.map) this.mapLayer = make('g', { class: 'dgm-map' }, this.view);
+      this.bandLayer = make('g', { class: 'dgm-bands' }, this.view);
       this.groupLayer = make('g', { class: 'dgm-groups' }, this.view);
       this.edgeLayer = make('g', { class: 'dgm-edges' }, this.view);
       this.nodeLayer = make('g', { class: 'dgm-nodes' }, this.view);
@@ -1053,6 +1055,56 @@
 
     // `arrange: flow` (top level for every container, or on one group): children in rows, left to
     // right then top to bottom, in the order they are written. Stable layout only.
+    // Which band each child of a flow container sits in. `bands:` lists the container's bands top to
+    // bottom ({id, label?, main?}); the main band (the one marked `main`, else the first) holds every
+    // child without a `band:`. With no `band:` on any child (and `hubs` not false), a child that
+    // receives arrows from 3 or more siblings and leads to at most one is a hub: it moves to an
+    // unlabelled band of its own below the main one. links: each child's siblings by arrow (any view).
+    bandPlan(cid, kids) {
+      const node = cid === '__root' ? null : this.nodes.get(cid);
+      const listed = ((node ? node.bands : this.data.bands) || []).map((b) => (typeof b === 'string' ? { id: b } : b));
+      const childIn = (id) => {
+        for (let n = this.nodes.get(id); n; n = n.parent) if ((n.parent ? n.parent.id : '__root') === cid) return n.id;
+        return null;
+      };
+      const links = new Map(kids.map((k) => [k.id, new Set()]));
+      const inFrom = new Map(kids.map((k) => [k.id, new Set()]));
+      const outTo = new Map(kids.map((k) => [k.id, new Set()]));
+      for (const e of this.edges) {
+        const a = childIn(e.from);
+        const b = childIn(e.to);
+        if (!a || !b || a === b || !links.has(a) || !links.has(b)) continue;
+        links.get(a).add(b);
+        links.get(b).add(a);
+        inFrom.get(b).add(a);
+        outTo.get(a).add(b);
+      }
+      let bands = listed.length ? listed.slice() : [{ id: 'main' }];
+      const main = Math.max(0, bands.findIndex((b) => b.main));
+      const idx = new Map(bands.map((b, i) => [b.id, i]));
+      const bandOf = kids.map((k) => (k.band != null && idx.has(k.band) ? idx.get(k.band) : main));
+      const hubs = (node && node.hubs != null ? node.hubs : this.data.hubs) !== false;
+      if (hubs && !kids.some((k) => k.band != null)) {
+        const isHub = kids.map((k) => inFrom.get(k.id).size >= 3 && outTo.get(k.id).size <= 1);
+        const count = isHub.filter(Boolean).length;
+        if (count && count < kids.length) {
+          bands = [...bands, { id: '__hubs' }];
+          isHub.forEach((h, i) => {
+            if (h) bandOf[i] = bands.length - 1;
+          });
+        }
+      }
+      const members = new Map();
+      bandOf.forEach((b, i) => {
+        if (!members.has(b)) members.set(b, []);
+        members.get(b).push(i);
+      });
+      const order = [main];
+      for (let b = main + 1; b < bands.length; b++) order.push(b);
+      for (let b = main - 1; b >= 0; b--) order.push(b);
+      return { bands, count: bands.length, main, bandOf, members, order, links, labelled: listed.some((b) => b.label) };
+    }
+
     isFlow(cid) {
       if (!this.stable) return false;
       const n = cid === '__root' ? null : this.nodes.get(cid);
@@ -1157,6 +1209,8 @@
     // and closing one gives back the layout from before it was opened.
     async stableLayout(vis) {
       const base = await this.baseLayouts();
+      // The top level's labelled bands, as the last arrange step left them (drawn behind everything).
+      let rootBands = null;
       let pinned = new Set();
       // Each step's positions: container id → child id → center, relative to the container's center.
       let prev = new Map();
@@ -1208,6 +1262,13 @@
       // corner, so it opens right and down from where it was. Hidden components keep their base space.
       const FLOW_GAP_X = 88;
       const FLOW_GAP_Y = 64;
+      // Bands (`bands:` on the top level or a group, `band:` on a component) are horizontal swimlanes:
+      // the main band holds the main path in rows as above; every other band is one row, stacked in
+      // the order the bands are listed, with each component placed under (or over) the components it
+      // connects to (the mean of their centers), keeping order and spacing. Components that many
+      // siblings point at (hubs) go to their own band, so their arrows arrive from one side instead
+      // of converging in the middle of the main path.
+      const BAND_GAP = 104;
       const flowArrange = (cid, rows) => {
         const node = cid === '__root' ? null : this.nodes.get(cid);
         const cols = Math.max(1, (node ? node.cols : this.data.cols) || (node ? Math.min(rows.length, 4) : rows.length));
@@ -1217,19 +1278,64 @@
           ox = -s.w / 2 + PAD_X;
           oy = -s.h / 2 + TOP;
         }
-        let [x, y, rowH] = [0, 0, 0];
-        return rows.map((r, i) => {
-          if (i && i % cols === 0) {
-            x = 0;
-            y += rowH + FLOW_GAP_Y;
-            rowH = 0;
+        const boxOf = (r) => (r.f ? r.f.box : { x0: -r.bw / 2, y0: -r.bh / 2, x1: r.bw / 2, y1: r.bh / 2 });
+        const plan = this.bandPlan(cid, rows.map((r) => r.k));
+        const raw = new Array(rows.length);
+        const cx = new Map();
+        const heights = new Map();
+        for (const bi of plan.order) {
+          const idxs = plan.members.get(bi) || [];
+          if (!idxs.length) continue;
+          let bandH = 0;
+          if (bi === plan.main) {
+            // The main path: rows of `cols`, left to right, top to bottom, top-aligned.
+            let [x, y, rowH] = [0, 0, 0];
+            idxs.forEach((i, n) => {
+              if (n && n % cols === 0) {
+                x = 0;
+                y += rowH + FLOW_GAP_Y;
+                rowH = 0;
+              }
+              const box = boxOf(rows[i]);
+              raw[i] = { x: x - box.x0, y: y - box.y0 };
+              cx.set(rows[i].k.id, x + (box.x1 - box.x0) / 2);
+              x += box.x1 - box.x0 + FLOW_GAP_X;
+              rowH = Math.max(rowH, box.y1 - box.y0);
+            });
+            bandH = y + rowH;
+          } else {
+            // One row, in the order written; each component slides right to sit under (or over) the
+            // center of what it connects to in the bands already placed, never past the next one.
+            const want = idxs.map((i) => {
+              const xs = [...(plan.links.get(rows[i].k.id) || [])].map((id) => cx.get(id)).filter((v) => v != null);
+              return { i, at: xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null };
+            });
+            let cursor = 0;
+            for (const { i, at } of want) {
+              const box = boxOf(rows[i]);
+              const w = box.x1 - box.x0;
+              const left = at == null ? cursor : Math.max(at - w / 2, cursor);
+              raw[i] = { x: left - box.x0, y: -box.y0 };
+              cx.set(rows[i].k.id, left + w / 2);
+              cursor = left + w + FLOW_GAP_X;
+              bandH = Math.max(bandH, box.y1 - box.y0);
+            }
           }
-          const box = r.f ? r.f.box : { x0: -r.bw / 2, y0: -r.bh / 2, x1: r.bw / 2, y1: r.bh / 2 };
-          const at = { x: ox + x - box.x0, y: oy + y - box.y0 };
-          x += box.x1 - box.x0 + FLOW_GAP_X;
-          rowH = Math.max(rowH, box.y1 - box.y0);
-          return at;
-        });
+          heights.set(bi, bandH);
+        }
+        // Stack the bands in their listed order.
+        const top = new Map();
+        let y = 0;
+        const out = [];
+        for (let bi = 0; bi < plan.count; bi++) {
+          if (!heights.has(bi)) continue;
+          top.set(bi, y);
+          out.push({ band: plan.bands[bi], y0: y, y1: y + heights.get(bi) });
+          y += heights.get(bi) + BAND_GAP;
+        }
+        const labelW = !node && plan.labelled ? BAND_LABEL_W : 0;
+        if (!node) rootBands = plan.labelled ? out.map((b) => ({ ...b, y0: b.y0 + oy, y1: b.y1 + oy })) : null;
+        return rows.map((r, i) => ({ x: ox + labelW + raw[i].x, y: oy + top.get(plan.bandOf[i]) + raw[i].y }));
       };
       const arrange = (cid, kids) => {
         const b = base.get(cid);
@@ -1286,6 +1392,19 @@
         this.expanded = open;
       }
       put(top, 0, 0);
+      if (rootBands && rootBands.length) {
+        let x1 = 0;
+        for (const p of placed.nodes.values()) x1 = Math.max(x1, p.x + p.w);
+        const n = rootBands.length;
+        placed.bands = rootBands.map((b, i) => ({
+          label: b.band.label || '',
+          id: b.band.id,
+          x0: 0,
+          x1: x1 + 40,
+          y0: i ? (rootBands[i - 1].y1 + b.y0) / 2 : b.y0 - 44,
+          y1: i < n - 1 ? (b.y1 + rootBands[i + 1].y0) / 2 : b.y1 + 44
+        }));
+      }
       // Arrows: an open group that holds either end doesn't block the arrow; every other box does.
       const routes = vis.map((v) => ({
         key: v.key,
@@ -1577,7 +1696,23 @@
       this.pillLayer.textContent = '';
       this.pointerLayer.textContent = '';
       this.edgeEls = new Map();
+      this.bandsBox = placed.bands ? { x0: placed.bands[0].x0, y0: placed.bands[0].y0, x1: placed.bands[0].x1, y1: placed.bands[placed.bands.length - 1].y1 } : null;
+      const drawBands = () => {
+        this.bandLayer.textContent = '';
+        (placed.bands || []).forEach((b, i) => {
+          const g = make('g', { class: 'dgm-band' + (i % 2 ? ' is-alt' : ''), 'data-band': b.id }, this.bandLayer);
+          make('rect', { class: 'dgm-band-bg', x: b.x0, y: b.y0, width: b.x1 - b.x0, height: b.y1 - b.y0 }, g);
+          make('rect', { class: 'dgm-band-head', x: b.x0, y: b.y0, width: BAND_LABEL_W - 28, height: b.y1 - b.y0 }, g);
+          const lines = wrap(b.label, 16);
+          const t = make('text', { class: 'dgm-band-label', x: b.x0 + (BAND_LABEL_W - 28) / 2, y: (b.y0 + b.y1) / 2 - ((lines.length - 1) * 17) / 2, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, g);
+          lines.forEach((l, k) => {
+            const sp = make('tspan', { x: b.x0 + (BAND_LABEL_W - 28) / 2, dy: k ? 17 : 0 }, t);
+            sp.textContent = l;
+          });
+        });
+      };
       const drawEdges = () => {
+        drawBands();
         for (const v of vis) {
           const pe = placed.edges.get(v.key);
           if (pe && pe.pts.length > 1) this.drawEdge(v, pe);
@@ -2147,8 +2282,15 @@
     }
     // Open on the whole diagram when it fits at a readable size, else at a readable zoom on its start
     // (left, top), like a map: drag to explore, Fit shows everything.
-    overview(animate = true) {
+    // Everything on the canvas: the components and the band strips behind them.
+    allBox() {
       const b = this.box([...this.pos.keys()]);
+      const s = this.bandsBox;
+      if (!b || !s) return b;
+      return { x0: Math.min(b.x0, s.x0), y0: Math.min(b.y0, s.y0), x1: Math.max(b.x1, s.x1), y1: Math.max(b.y1, s.y1) };
+    }
+    overview(animate = true) {
+      const b = this.allBox();
       if (!b) return;
       const c = this.camFor(b, 1.25);
       const minK = this.data.min_zoom || 0.62;
@@ -2159,7 +2301,7 @@
       this.animateCam({ k, x: 24 - k * b.x0, y: fitsTall ? (H - k * (b.y1 + b.y0)) / 2 : 24 - k * b.y0 }, animate);
     }
     fit(animate = true) {
-      const b = this.box([...this.pos.keys()]);
+      const b = this.allBox();
       if (b) this.animateCam(this.camFor(b, 1.25), animate);
     }
     focusOn(ids, animate = true) {

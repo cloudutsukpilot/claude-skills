@@ -1,6 +1,6 @@
 # Plan: flow arrangement for interactive diagrams
 
-**Status (2026-11-21):** In progress. Plugin 1.5.0 in review; the blog engine is not changed yet.
+**Status (2026-11-21):** In progress. Plugin 1.5.0 released; 1.6.0 (bands) in review; the blog engine is not changed yet.
 
 ## Goal
 
@@ -18,9 +18,10 @@ or per group), stable layout only, in written order, `cols` per row (top level: 
 
 | Step | Status | PRs | Left |
 |---|---|---|---|
-| 1. Plugin engine, validator, docs, version 1.5.0 | In progress (2026-11-21) | this branch | Merge, then tag `interactive-diagrams-v1.5.0` |
-| 2. Install 1.5.0 on the Spark | Next | — | After the merge: `claude plugin marketplace update cloudutsuk` and `claude plugin update interactive-diagrams@cloudutsuk` |
+| 1. Plugin engine, validator, docs, version 1.5.0 | Done (2026-11-21) | #15 | Nothing. Tagged `interactive-diagrams-v1.5.0` |
+| 2. Install 1.5.0 on the Spark | Done (2026-11-21) | — | Nothing. 1.4.1 → 1.5.0 (restart Claude Code to load it) |
+| 2b. Plugin 1.6.0: bands (swimlanes) and hubs for flow diagrams | In progress (2026-11-21) | this branch | Merge, tag `interactive-diagrams-v1.6.0`, update on the Spark |
 | 3. First user: the CarePro intake process map (evolent `project-fax-intake`) | Done (2026-11-21) | built with this branch's engine | Rebuild with the released plugin after step 2 (no change expected) |
 | 4. Blog engine (`sakharams.github.io/assets/js/diagram.js`, `cloudutsuk-diagram` skill) | Planned | — | Port the same change when a blog diagram needs it |
 
-Waiting on you: merging the PR.
+Waiting on you: merging the 1.6.0 PR.

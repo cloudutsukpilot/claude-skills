@@ -251,6 +251,28 @@
   stroke-dasharray: 4 3;
 }
 
+.dgm-band-bg {
+  fill: var(--dgm-host-bg);
+  stroke: var(--dgm-border);
+  stroke-width: 1;
+}
+
+.dgm-band.is-alt .dgm-band-bg {
+  fill: var(--dgm-soft);
+}
+
+.dgm-band-head {
+  fill: color-mix(in srgb, var(--dgm-ink) 7%, var(--dgm-host-bg));
+  stroke: var(--dgm-border);
+  stroke-width: 1;
+}
+
+.dgm-band-label {
+  fill: var(--dgm-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
 .dgm-group {
   --dgm-c: var(--dgm-accent);
 }

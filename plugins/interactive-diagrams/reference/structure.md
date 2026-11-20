@@ -23,6 +23,17 @@ containers → areas → services → components.
   from its closed box, pushing the rest of its row right and the rows below down. Use it for process
   maps and step-by-step flows, where reading order matters more than arrow length. The default
   (`layered`) places components by their arrows (ELK).
+- **Bands for hubs** (with `arrange: flow`). A component that many others point at (a ticket queue,
+  an outcome, "move to the next item") drawn in the middle of the main row pulls every arrow into one
+  knot. Lay the diagram out like a swimlane chart instead: list horizontal `bands:` on the top level
+  (`{id, label, main?}`, top to bottom) and give each component a `band:`. The main band holds the main
+  path in rows; every other band is one row, its components in the order written, each slid under the
+  components it connects to, so arrows run straight down between bands. Labelled top-level bands are
+  drawn as swimlanes with a header column. A good split: **Main path** (the happy path), then
+  **Checks and follow-up** (side work that returns to the main path), then **Outcomes** (where flows
+  end). Order each band so components that link to each other sit next to each other. Without any
+  `band:`, components that receive arrows from 3 or more siblings and lead to at most one move to a
+  band of their own below the main path automatically (`hubs: false` turns that off).
 - `direction: down` on a group stacks its children top to bottom. Use it when a group would otherwise
   be a very wide row (for example a host with 6 or more clusters).
 - Name the levels: `levels: [Context, Containers, Components]` (one name per level, Level 0 first).
