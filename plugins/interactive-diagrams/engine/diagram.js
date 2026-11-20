@@ -1051,6 +1051,14 @@
       return !this.data.map && this.data.layout !== 'auto';
     }
 
+    // `arrange: flow` (top level for every container, or on one group): children in rows, left to
+    // right then top to bottom, in the order they are written. Stable layout only.
+    isFlow(cid) {
+      if (!this.stable) return false;
+      const n = cid === '__root' ? null : this.nodes.get(cid);
+      return ((n && n.arrange) || this.data.arrange) === 'flow';
+    }
+
     async relayout({ fit = false, focus = null, anchor = null, was = null, animate = true } = {}) {
       const token = (this.layoutToken = (this.layoutToken || 0) + 1);
       const vis = this.visibleEdges();
@@ -1180,14 +1188,48 @@
         // Wide enough for the header (icon, label, sub, info and collapse buttons), as in the ELK layout.
         const minW = Math.ceil(Math.max(String(n.label).length * 8, String(n.sub || '').length * 6.8) + 110);
         if (x1 - x0 < minW) {
-          const grow = (minW - (x1 - x0)) / 2;
-          x0 -= grow;
-          x1 += grow;
+          // A flow group grows right and down from its closed box; any other group around its center.
+          if (this.isFlow(n.id)) x1 = x0 + minW;
+          else {
+            const grow = (minW - (x1 - x0)) / 2;
+            x0 -= grow;
+            x1 += grow;
+          }
         }
         if (y1 - y0 < 80) y1 = y0 + 80;
         const w = Math.max(2 * Math.max(-x0, x1), s.w);
         const h = Math.max(2 * Math.max(-y0, y1), s.h);
         return { w, h, group: true, items, box: { x0, y0, x1, y1 } };
+      };
+      // Flow arrangement (`arrange: flow`): children in model order, left to right in rows of `cols`,
+      // rows top to bottom, each row top-aligned. Positions come from the current sizes, so an open
+      // component pushes the ones after it in its row to the right and the rows below it down, and
+      // closing it restores the layout exactly. A group's rows start at its closed box's top-left
+      // corner, so it opens right and down from where it was. Hidden components keep their base space.
+      const FLOW_GAP_X = 88;
+      const FLOW_GAP_Y = 64;
+      const flowArrange = (cid, rows) => {
+        const node = cid === '__root' ? null : this.nodes.get(cid);
+        const cols = Math.max(1, (node ? node.cols : this.data.cols) || (node ? Math.min(rows.length, 4) : rows.length));
+        let [ox, oy] = [0, 0];
+        if (node) {
+          const s = this.leafSize(node);
+          ox = -s.w / 2 + PAD_X;
+          oy = -s.h / 2 + TOP;
+        }
+        let [x, y, rowH] = [0, 0, 0];
+        return rows.map((r, i) => {
+          if (i && i % cols === 0) {
+            x = 0;
+            y += rowH + FLOW_GAP_Y;
+            rowH = 0;
+          }
+          const box = r.f ? r.f.box : { x0: -r.bw / 2, y0: -r.bh / 2, x1: r.bw / 2, y1: r.bh / 2 };
+          const at = { x: ox + x - box.x0, y: oy + y - box.y0 };
+          x += box.x1 - box.x0 + FLOW_GAP_X;
+          rowH = Math.max(rowH, box.y1 - box.y0);
+          return at;
+        });
       };
       const arrange = (cid, kids) => {
         const b = base.get(cid);
@@ -1198,6 +1240,12 @@
           const st = was && was.get(k.id);
           return { k, f, bx: bb.x, by: bb.y, bw: bb.w, bh: bb.h, sx: st && st.x, sy: st && st.y, w: f ? Math.max(f.w, bb.w) : bb.w, h: f ? Math.max(f.h, bb.h) : bb.h };
         });
+        if (this.isFlow(cid)) {
+          const pos = flowArrange(cid, rows);
+          const out = rows.map((r, i) => ({ k: r.k, f: r.f, x: pos[i].x, y: pos[i].y }));
+          cur.set(cid, new Map(out.filter((o) => o.f).map((o) => [o.k.id, { x: o.x, y: o.y }])));
+          return out;
+        }
         // Local push among the visible children; the guaranteed (roomier) push if it doesn't settle.
         const vis = rows.filter((r) => r.f);
         const local = pushLocal(vis.map((r) => ({ ...r, box: r.f.box, grown: r.f.group, pinned: r.f.group && pinned.has(r.k.id) })));

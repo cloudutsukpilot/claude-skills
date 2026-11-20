@@ -12,6 +12,7 @@ diagram only uses level-1 keys.
 | `level` | 1 | Level shown on every load (default 1) |
 | `levels` | 1 | Names for the level buttons, Level 0 first: `[Context, Containers, Components]` |
 | `direction` | 1 | Root flow, default `right`; per group `direction: down` |
+| `arrange`, `cols` | 1 | `arrange: flow` places every container's children in rows, left to right then top to bottom, in the order written (stable layout only); `cols` is the root row length (default: all in one row). Default `layered` (ELK) |
 | `wrap`, `aspect` | 1 | `wrap: true` wraps a long single chain into rows |
 | `layout` | 1 | `stable` (default): every component keeps its place when another opens or closes. `auto`: the whole diagram is laid out again on every change (the behaviour before 1.4) |
 | `min_zoom` | 1 | Opening zoom floor (default 0.62), so large diagrams open readable |
@@ -41,6 +42,7 @@ diagram only uses level-1 keys.
 | `detail` | 1 | Extra notes, Markdown, under ~600 characters |
 | `config` | 1 | `{title, lang, code}`, a real snippet, copied exactly |
 | `direction` | 1 | `down` stacks a group's children |
+| `arrange`, `cols` | 1 | `flow` (or `layered`) for this group only; `cols` = components per row (default up to 4) |
 | `children` | 1 | Nested components |
 | `views` | 2 | Shown **only** in these view tabs |
 | `lat`, `lon` | 3 | Position on the `map` backdrop |

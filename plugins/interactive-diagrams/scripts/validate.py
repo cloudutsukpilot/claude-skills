@@ -93,6 +93,12 @@ def validate(data, path, level=None):
         W("`details` only affects use cases; this diagram has none")
     if "layout" in data and data["layout"] not in ("stable", "auto"):
         E("`layout` must be `stable` (the default) or `auto`")
+    if "arrange" in data and data["arrange"] not in ("layered", "flow"):
+        E("`arrange` must be `layered` (the default) or `flow`")
+    if data.get("arrange") == "flow" and (data.get("layout") == "auto" or data.get("map")):
+        W("`arrange: flow` only applies to the stable layout (not `layout: auto` or a `map:`)")
+    if "cols" in data and not (isinstance(data["cols"], int) and not isinstance(data["cols"], bool) and data["cols"] >= 1):
+        E("`cols` must be a whole number, 1 or more")
     if data.get("layout") and data.get("map"):
         W("`layout` doesn't apply to a `map:` diagram (components sit at their coordinates)")
 
@@ -126,6 +132,14 @@ def validate(data, path, level=None):
             E(f"`{nid}`: direction must be one of {sorted(DIRECTIONS)}")
         if n.get("direction") and not n.get("children"):
             W(f"`{nid}`: direction only affects groups (components with children)")
+        if "arrange" in n and n["arrange"] not in ("layered", "flow"):
+            E(f"`{nid}`: arrange must be `layered` or `flow`")
+        if "cols" in n and not (isinstance(n["cols"], int) and not isinstance(n["cols"], bool) and n["cols"] >= 1):
+            E(f"`{nid}`: cols must be a whole number, 1 or more")
+        if ("arrange" in n or "cols" in n) and not n.get("children"):
+            W(f"`{nid}`: arrange and cols only affect groups (components with children)")
+        if "cols" in n and (n.get("arrange") or data.get("arrange")) != "flow":
+            W(f"`{nid}`: cols only applies with `arrange: flow`")
         if len(str(n.get("label", ""))) > 28:
             W(f"`{nid}`: label is long ({len(n['label'])} chars); keep it short and put the rest in `sub` or `detail`")
         if len(str(n.get("detail", ""))) > 900:
