@@ -17,6 +17,12 @@ containers → areas → services → components.
 - Group by **where things run** first (edge, clusters, regions, external SaaS), then by **purpose**
   (frontend, data, model serving). A group with 2 to 7 children reads best. If a level would show
   more than about 45 components, add an intermediate group.
+- `arrange: flow` (top level, or on one group) lays components out like a flowchart page: in the
+  order they are written, left to right in rows of `cols`, rows top to bottom, every row top-aligned.
+  The top level defaults to one row; a group to rows of up to 4. An opened group grows right and down
+  from its closed box, pushing the rest of its row right and the rows below down. Use it for process
+  maps and step-by-step flows, where reading order matters more than arrow length. The default
+  (`layered`) places components by their arrows (ELK).
 - `direction: down` on a group stacks its children top to bottom. Use it when a group would otherwise
   be a very wide row (for example a host with 6 or more clusters).
 - Name the levels: `levels: [Context, Containers, Components]` (one name per level, Level 0 first).

@@ -2,6 +2,16 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.5.0 — 2026-11-21
+
+- `arrange: flow` (top level, or `arrange:` on one group): components are laid out like a flowchart
+  page instead of by their arrows: in the order they are written, left to right in rows of `cols`, rows
+  top to bottom, every row top-aligned. The top level defaults to one row, a group to rows of up to 4.
+  An opened group grows right and down from its closed box, pushing the rest of its row right and the
+  rows below down; closing it restores the layout exactly. For process maps, where ELK's layered
+  placement put the phases on a staircase because of the arrows that skip ahead or loop back.
+  Stable layout only; the default stays `layered`. The validator checks `arrange` and `cols`.
+
 ## software-factory 0.2.0 — 2026-11-20
 
 - `/factory check <feature>` (`factory.py check`): is a feature ready to run with nobody to ask? It checks
