@@ -43,9 +43,16 @@ Optional. Pointers: files, earlier PRs, constraints, things not to touch.
 | `status` | yes | See below. |
 | `plan` | no | Path of the plan doc this feature delivers, relative to the repo root. |
 | `priority` | no | Integer; lower runs first. Without it, the number decides. |
+| `component` | no | The component id in `docs/project.yaml` (portfolio-map's manifest) this feature belongs to. `/factory check` refuses an id that isn't there. |
+| `plugins` | no | Extra Claude Code plugins a CI run loads for this feature, as a list (`[interactive-diagrams]`). The CI workflow loads only plugins its profile allows. |
 
 Only `## What` is required in the body. Write it like an issue: the factory's intake reads it, may
 narrow it to a first slice that fits one pull request, and asks when only you can decide something.
+
+A feature that runs **unattended** (CI, or `FACTORY_NON_INTERACTIVE=1`) also needs `## Why` and a
+`## Done when` with checks a reviewer can verify, because nobody can answer intake's questions during the
+run. `/factory check <feature>` checks this, and runs intake as a preflight that asks its questions
+now, while you can answer them in the file.
 
 ## Status
 

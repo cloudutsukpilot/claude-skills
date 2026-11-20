@@ -1,6 +1,6 @@
 ---
 name: factory
-description: Run the software factory in the current repo. Feature requests written as files in docs/features/ (status ready) go through intake → spec → build → gate (the repo's own checks) → reviewers → approver, and each ends as a reviewed pull request that the user merges; the factory never merges. Use when the user types /factory with run, status, new, init, answer, feedback, reject or sync, or asks to "run the factory", "build the ready features", "queue a feature for the factory", or "set this repo up for the factory".
+description: Run the software factory in the current repo. Feature requests written as files in docs/features/ (status ready) go through intake → spec → build → gate (the repo's own checks) → reviewers → approver, and each ends as a reviewed pull request that the user merges; the factory never merges. Use when the user types /factory with run, status, new, check, init, answer, feedback, reject or sync, or asks to "run the factory", "build the ready features", "queue a feature for the factory", "check this feature is ready", or "set this repo up for the factory".
 ---
 
 # Factory
@@ -87,6 +87,21 @@ slug, the user's description turned into **What** and **Why** (ask only if you c
 Status is `ready` unless the user says draft. Commit it on a branch and open a PR (or add it to one the
 user names): only features on the base branch run.
 
+### /factory check <feature>
+
+Is a feature ready to run with nobody to ask? Run it before a feature is queued: before its PR is
+opened or merged (a file path on the branch), or for a feature on the base branch (its number).
+
+1. `factory.py check <feature>`. It checks the fixed rules (frontmatter, `status: ready`, non-empty
+   **What**, **Why** and **Done when**, a `component:` that exists in `docs/project.yaml`, the repo set up
+   for the factory) and prints `problems:`, a `folder:` and a `prompt:` line. If it lists problems,
+   report them and stop.
+2. Spawn intake with the `prompt:` line followed by `Check this feature.` It writes `intake.md` in that
+   folder; no job is created.
+3. Report from the first line of `intake.md`: `ACCEPT` → ready, with its `## Scope` and `## Assumptions`
+   in a few lines; `NEEDS-INFO` → the `## Questions`, to answer in the feature file (usually **What**,
+   **Done when** or **Notes**), then check again; `REJECT` → the reason.
+
 ### /factory run [<feature>]
 
 1. `factory.py sync`, then `factory.py queue`. It prints `concurrency C, active A` and one row per job or feature:
@@ -103,6 +118,13 @@ user names): only features on the base branch run.
    progress in parallel; drive each job by its stage (section 3) whenever one of its agents finishes.
 4. When nothing is left to move, print `factory.py status` and, for each job waiting on the user, one line:
    the job, its stage, the PR link, and what is needed.
+
+**Non-interactive runs.** When `factory.py queue` prints `mode non-interactive` (CI sets
+`FACTORY_NON_INTERACTIVE=1`), nobody answers until the run ends. Never ask the user anything and never
+wait for a reply: drive every job until it reaches a stage that waits for the user (`needs-info`,
+`needs-human`, `recommended`) or ends, then stop. The agents see `Mode: non-interactive` in their prompt
+line and decide with stated assumptions instead of asking. The final report is the same as step 4, and
+for a `needs-info` job it quotes the questions.
 
 ### /factory status
 

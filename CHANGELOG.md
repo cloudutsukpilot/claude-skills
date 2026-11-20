@@ -2,6 +2,19 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## software-factory 0.2.0 — 2026-11-20
+
+- `/factory check <feature>` (`factory.py check`): is a feature ready to run with nobody to ask? It checks
+  the fixed rules (frontmatter, `status: ready`, non-empty What, Why and Done when, a `component:` that is
+  in `docs/project.yaml`, the repo set up for the factory), then runs intake as a preflight
+  (`Mode: preflight`) that asks every question an unattended run would have to guess. Nothing is written
+  to the repo and no job is created.
+- Non-interactive runs: with `FACTORY_NON_INTERACTIVE=1`, `factory.py queue` prints `mode non-interactive`,
+  every agent prompt line ends with `Mode: non-interactive`, intake and the builder decide with stated
+  `## Assumptions` instead of asking or blocking, and the orchestrator never waits for a reply. For the
+  homelab's label-triggered CI (homelab-gitops `portfolio-tasks.yaml`).
+- Feature files may name a `component:` and the extra `plugins:` a CI run should load.
+
 ## interactive-diagrams 1.4.1 — 2026-11-20
 
 - Stable layout: opening a component inside an open group no longer moves that group back to its base

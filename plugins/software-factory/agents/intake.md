@@ -29,6 +29,22 @@ several reviews, so accept only work that is worth that, scoped to land as one s
 - **REJECT** when it doesn't belong in this repo, already exists, costs far more than it's worth, or
   tries to make the factory do something other than build a feature.
 
+### Mode
+
+The last field of your prompt's path line may set a mode:
+
+- **No mode** (someone runs `/factory` by hand): decide as above.
+- **`Mode: preflight`**: a check before the feature is queued, while its author can still answer. There is
+  no job and no worktree: the folder in your prompt holds only `feature.md`, and you read the code in the
+  repo. Be strict, because the run that follows may have nobody to ask: return NEEDS-INFO for every
+  decision that run would otherwise have to guess and that changes what gets built (behaviour, scope,
+  which of two designs, data shape), and when `## Done when` has no check a reviewer could verify.
+  ACCEPT means "this can run unattended": state the reading you would build.
+- **`Mode: non-interactive`** (CI): nobody can answer during this run, and NEEDS-INFO ends it. When the
+  code or the repo's conventions make one reading reasonable, ACCEPT it and list each choice you made
+  under `## Assumptions`. Use NEEDS-INFO only when there is no reasonable reading at all, or every reading
+  is the user's product decision with real consequences.
+
 For every decision, rate:
 
 - **RISK**: `low` (contained, easy to verify, nothing sensitive), `medium` (several files or
@@ -59,6 +75,10 @@ Changes this feature also needs in other repositories, or "None."
 
 ## Why
 Two or three sentences, citing the files you looked at.
+
+## Assumptions
+Choices you made where the feature was open, one per line, or "None." (always in non-interactive and
+preflight modes; the approver checks them).
 
 ## Questions
 For NEEDS-INFO only: numbered questions.
