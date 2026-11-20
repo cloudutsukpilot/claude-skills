@@ -2026,13 +2026,15 @@ body.dgm-full-open {
   // pushes them, along the axis they were separated on in the base layout, keeping their base gap (up
   // to 80). Pushes cascade outward. Who gives way: a pinned box (the component just opened and its
   // open ancestors) never moves; an open one moves before a pinned one; a closed one moves first; among
-  // equals, the one farther from the nearest open box. The result depends only on the base layout and
-  // what is open, so closing a component puts everything back. If it doesn't settle, pushApart.
-  // items: [{bx, by, bw, bh, box: {x0, y0, x1, y1} (current, relative to the center), grown, pinned}]
+  // equals, the one farther from the nearest open box. Each box starts where the previous step of the
+  // open order left it (sx, sy; else its base center), so a box pushed earlier stays pushed. The result
+  // depends only on the base layout and the open order, so closing a component puts everything back.
+  // If it doesn't settle, pushApart.
+  // items: [{bx, by, bw, bh, sx?, sy?, box: {x0, y0, x1, y1} (current, relative to the center), grown, pinned}]
   function pushLocal(items) {
     const n = items.length;
     const MAXGAP = 80;
-    const pos = items.map((s) => ({ x: s.bx, y: s.by }));
+    const pos = items.map((s) => ({ x: s.sx ?? s.bx, y: s.sy ?? s.by }));
     const grown = items.filter((s) => s.grown || s.pinned);
     if (!grown.length) return pos;
     const rank = items.map((s) => (s.pinned ? 0 : s.grown ? 1 : 2));
@@ -2834,14 +2836,17 @@ body.dgm-full-open {
 
     // Stable layout: each component sits at its base center. An open group's frame is centered on that
     // same point and sized to its children (laid out by its own base layout); the siblings it would
-    // cover are pushed straight out (pushApart). A component hidden by the view tab keeps its space.
+    // cover are pushed straight out (pushLocal). A component hidden by the view tab keeps its space.
+    // The layout is replayed in the order components were opened: first what the level opened, then
+    // each component the reader opened, starting from where the step before left everything, with that
+    // component and its open ancestors pinned. So opening one never moves a box pushed earlier back,
+    // and closing one gives back the layout from before it was opened.
     async stableLayout(vis) {
       const base = await this.baseLayouts();
-      // The component opened last that is still open (and its ancestors) gives way last. It depends
-      // only on the order components were opened in, so closing one gives back the layout from before
-      // it was opened.
-      const pin = [...(this.openOrder || [])].reverse().find((id) => this.expanded.has(id) && this.isVisible(this.nodes.get(id)));
-      const pinned = new Set(pin ? [pin, ...this.ancestorsOf(pin).map((a) => a.id)] : []);
+      let pinned = new Set();
+      // Each step's positions: container id → child id → center, relative to the container's center.
+      let prev = new Map();
+      let cur = new Map();
       const PAD_X = 16;
       const TOP = 48;
       const BOTTOM = 16;
@@ -2880,10 +2885,12 @@ body.dgm-full-open {
       };
       const arrange = (cid, kids) => {
         const b = base.get(cid);
+        const was = prev.get(cid);
         const rows = kids.map((k) => {
           const bb = b.get(k.id);
           const f = this.shown(k) ? frame(k) : null;
-          return { k, f, bx: bb.x, by: bb.y, bw: bb.w, bh: bb.h, w: f ? Math.max(f.w, bb.w) : bb.w, h: f ? Math.max(f.h, bb.h) : bb.h };
+          const st = was && was.get(k.id);
+          return { k, f, bx: bb.x, by: bb.y, bw: bb.w, bh: bb.h, sx: st && st.x, sy: st && st.y, w: f ? Math.max(f.w, bb.w) : bb.w, h: f ? Math.max(f.h, bb.h) : bb.h };
         });
         // Local push among the visible children; the guaranteed (roomier) push if it doesn't settle.
         const vis = rows.filter((r) => r.f);
@@ -2891,7 +2898,9 @@ body.dgm-full-open {
         const at = new Map();
         if (local) vis.forEach((r, i) => at.set(r, local[i]));
         else pushApart(rows).forEach((p, i) => at.set(rows[i], p));
-        return rows.map((r) => ({ k: r.k, f: r.f, x: (at.get(r) || { x: r.bx }).x, y: (at.get(r) || { y: r.by }).y }));
+        const out = rows.map((r) => ({ k: r.k, f: r.f, x: (at.get(r) || { x: r.bx }).x, y: (at.get(r) || { y: r.by }).y }));
+        cur.set(cid, new Map(out.filter((o) => o.f).map((o) => [o.k.id, { x: o.x, y: o.y }])));
+        return out;
       };
       const placed = { nodes: new Map(), edges: new Map() };
       const put = (items, ox, oy) => {
@@ -2905,7 +2914,24 @@ body.dgm-full-open {
           if (it.f.group) put(it.f.items, cx, cy);
         }
       };
-      put(arrange('__root', this.top), 0, 0);
+      // Replay the open order (this.expanded is swapped for each step and put back).
+      const open = this.expanded;
+      const order = (this.openOrder || []).filter((id, i, a) => open.has(id) && a.indexOf(id) === i);
+      const first = new Set([...open].filter((id) => !order.includes(id)));
+      let top;
+      try {
+        for (let t = 0; t <= order.length; t++) {
+          this.expanded = t === order.length ? open : new Set([...first, ...order.slice(0, t)]);
+          const pin = t ? order[t - 1] : null;
+          pinned = new Set(pin && this.isVisible(this.nodes.get(pin)) ? [pin, ...this.ancestorsOf(pin).map((a) => a.id)] : []);
+          prev = cur;
+          cur = new Map();
+          top = arrange('__root', this.top);
+        }
+      } finally {
+        this.expanded = open;
+      }
+      put(top, 0, 0);
       // Arrows: an open group that holds either end doesn't block the arrow; every other box does.
       const routes = vis.map((v) => ({
         key: v.key,

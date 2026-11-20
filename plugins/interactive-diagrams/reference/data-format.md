@@ -85,7 +85,8 @@ diagram only uses level-1 keys.
   children; only the components it would now touch move, straight away from it, and the push cascades
   outward. The component just opened stays where it is on screen (the camera does not pan; it only
   zooms out, around that component, if it no longer fits), and closing it puts everything back
-  exactly. A component hidden by the view tab keeps its space. Arrows are routed around the
+  exactly. The layout follows the order components were opened in: opening one starts from the layout
+  on screen, so a component pushed aside earlier stays where it is. A component hidden by the view tab keeps its space. Arrows are routed around the
   components (orthogonal, fewest bends); parallel arrows get their own lanes, and pills avoid each
   other and the components.
 - **Layout (`layout: auto`):** ELK lays out the whole visible diagram again after every change; each
