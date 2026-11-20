@@ -1,6 +1,6 @@
 # Plan: stable layout for interactive diagrams
 
-**Status (2026-11-20):** Phases 1 and 2 done (plugin 1.4.0 released and installed on the Spark). Phase 3 (blog engine) found a bug in the stable layout, fixed in plugin 1.4.1 (in review) and in the blog's PR (in review).
+**Status (2026-11-20):** Done. Plugin 1.4.1 released and installed on the Spark; the blog runs the same engine (live on cloudutsuk.com).
 
 ## Goal
 
@@ -57,7 +57,7 @@ Closing it moves them back exactly.
 |---|---|---|---|
 | 1. Plugin engine: stable layout, router, camera, `layout: auto`, validator, docs, version 1.4.0 | Done (2026-11-20) | #10 | Nothing. Merged and tagged `interactive-diagrams-v1.4.0` |
 | 2. Install the new plugin version on the Spark (`claude plugin` update) | Done (2026-11-20) | — | Nothing. `claude plugin marketplace update cloudutsuk` and `claude plugin update interactive-diagrams@cloudutsuk`: 1.1.0 → 1.4.0 (restart Claude Code to load it) |
-| 1b. Plugin 1.4.1: replay the open order (bug found in phase 3) | In review | — | Merge the PR, tag `interactive-diagrams-v1.4.1`, then `claude plugin marketplace update cloudutsuk` and `claude plugin update interactive-diagrams@cloudutsuk` on the Spark |
-| 3. Blog engine and `cloudutsuk-diagram` skill docs | In review | — | Merge the blog PR (engine 1.4.1 with the blog header, validator `layout` rule, preview checks, SKILL.md and PLAN.md); then check the deploy |
+| 1b. Plugin 1.4.1: replay the open order (bug found in phase 3) | Done (2026-11-20) | #12 | Nothing. Tagged `interactive-diagrams-v1.4.1`; plugin updated on the Spark 1.4.0 → 1.4.1 (restart Claude Code to load it) |
+| 3. Blog engine and `cloudutsuk-diagram` skill docs | Done (2026-11-20) | sakharams.github.io #124 | Nothing. Deploy succeeded; the live `diagram.js` has the replayed open order |
 
-Waiting on you: merge the plugin 1.4.1 PR and the blog PR (either order; the engines are the same apart from the header).
+Waiting on you: nothing. Follow-up outside this plan: the blog's `preview.cjs` crashes on the GA4 page-view post (also with the old engine), tracked in the workspace `PENDING.md`.
