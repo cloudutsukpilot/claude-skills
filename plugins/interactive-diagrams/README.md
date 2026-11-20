@@ -5,7 +5,7 @@ validated, built and checked in a real browser. Three skills, each a tier that b
 
 | Level | Skill | Adds |
 |---|---|---|
-| 1 | [diagram-level-1](skills/diagram-level-1/SKILL.md) | Components nested in levels (level 0 = context; click to expand), pan and zoom, automatic ELK layout, icons or logos, a facts panel per component (status, summary, how, where, when, links, API), arrows with why, protocol:port pills, colours per kind and moving dots for streams |
+| 1 | [diagram-level-1](skills/diagram-level-1/SKILL.md) | Components nested in levels (level 0 = context; click to expand), pan and zoom, automatic ELK layout that stays put (opening a component grows it in place and only nudges its neighbours), icons or logos, a facts panel per component (status, summary, how, where, when, links, API), arrows with why, protocol:port pills, colours per kind and moving dots for streams |
 | 2 | [diagram-level-2](skills/diagram-level-2/SKILL.md) | Certificates on every arrow (issuer, validity, storage, trust) or why there is none; the full exchange on the wire as a looping sequence diagram (TCP → TLS 1.3 / mTLS → HTTP, gRPC, OIDC, Kafka, MQTT, SSH, WireGuard …); view tabs for cross-cutting arrows |
 | 3 | [diagram-level-3](skills/diagram-level-3/SKILL.md) | Guided use cases: a packet travels hop by hop and back, a step card per step (short text on the canvas, or with the Details box a longer description under it at full width), success/fail outcomes, alternative modes; lock mode plays them on the reader's layout without opening groups; optional world-map backdrop |
 
@@ -36,7 +36,7 @@ Embed in any site with an iframe:
 | `reference/data-format.md` | Every key, with the level that introduces it |
 | `reference/protocols-ports.md` | Default ports and communication kinds |
 | `templates/level-{1,2,3}.yml` | Starters that validate cleanly at their level |
-| `engine/diagram.js` | The engine: model, levels, ELK layout, SVG, pan/zoom, panels, cards, use cases, geo |
+| `engine/diagram.js` | The engine: model, levels, stable layout (ELK base layouts, local push, orthogonal arrow router), SVG, pan/zoom, panels, cards, use cases, geo |
 | `engine/src/diagram.scss` → `engine/diagram.css` | Styles (light and dark), every class prefixed `dgm-` |
 | `engine/template.html` | The page shell build.py fills |
 | `engine/world.json` | Land outlines for the geo backdrop |

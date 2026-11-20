@@ -13,6 +13,7 @@ diagram only uses level-1 keys.
 | `levels` | 1 | Names for the level buttons, Level 0 first: `[Context, Containers, Components]` |
 | `direction` | 1 | Root flow, default `right`; per group `direction: down` |
 | `wrap`, `aspect` | 1 | `wrap: true` wraps a long single chain into rows |
+| `layout` | 1 | `stable` (default): every component keeps its place when another opens or closes. `auto`: the whole diagram is laid out again on every change (the behaviour before 1.4) |
 | `min_zoom` | 1 | Opening zoom floor (default 0.62), so large diagrams open readable |
 | `accent`, `accent2` | 1 | `#RRGGBB`: accent = focus, level buttons and tour trail; accent2 = the tour pointer |
 | `nodes` | 1 | Required. The component tree (below) |
@@ -78,8 +79,18 @@ diagram only uses level-1 keys.
 
 ## How it behaves
 
-- **Layout:** ELK `layered`, left to right. Each open group is laid out on its own, and arrows that
-  cross groups leave through ports on the group borders.
+- **Layout (`layout: stable`, the default):** ELK `layered` places the children of every container (the
+  top level and each group) once, as closed components, with all arrows (every view and mode) lifted to
+  them. Each component keeps that center. Opening a component grows it around its center to fit its
+  children; only the components it would now touch move, straight away from it, and the push cascades
+  outward. The component just opened stays where it is on screen (the camera does not pan; it only
+  zooms out, around that component, if it no longer fits), and closing it puts everything back
+  exactly. A component hidden by the view tab keeps its space. Arrows are routed around the
+  components (orthogonal, fewest bends); parallel arrows get their own lanes, and pills avoid each
+  other and the components.
+- **Layout (`layout: auto`):** ELK lays out the whole visible diagram again after every change; each
+  open group is laid out on its own, and arrows that cross groups leave through ports on the group
+  borders. Compact, but components can move anywhere when one opens.
 - **Level buttons** walk to a level one layer at a time; clicking a component opens or closes only it.
 - **Opening view:** the whole diagram if it fits at a readable size, else a readable zoom on its start.
 - **Interaction:** Ctrl/⌘ + wheel or pinch zooms (the page still scrolls); ⤢ is fullscreen. Hovering a
