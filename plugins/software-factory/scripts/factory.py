@@ -20,8 +20,13 @@ Usage:
   factory.py sync                       mark jobs whose PR was merged or closed; remove their worktrees
   factory.py status [<job>]             table of jobs, or one job's json
   factory.py prompt <job> <role>        the opening line every agent prompt starts with
+  factory.py check <feature>            is a feature ready to run unattended? fixed rules, then the folder and
+                                        prompt line for intake's preflight (a file path, or a feature on the base)
 
 <job> is a job id (004-dark-mode) or its number (4).
+
+FACTORY_NON_INTERACTIVE=1 (CI): nobody answers during the run. Every prompt line says `Mode: non-interactive`,
+and the agents decide with stated assumptions instead of stopping to ask.
 """
 
 import fcntl
@@ -50,6 +55,9 @@ TRANSITIONS = {
     "needs-human": {"build", "rejected"},
 }
 TERMINAL = {"merged", "closed", "rejected"}
+NON_INTERACTIVE = os.environ.get("FACTORY_NON_INTERACTIVE") == "1"
+# Sections a feature needs before it runs unattended: reviewers and the approver judge against Done when.
+REQUIRED_SECTIONS = ("What", "Why", "Done when")
 WAITING = {"needs-info", "recommended", "needs-human"}
 
 
@@ -233,7 +241,8 @@ def cmd_queue():
         if f["status"] == "ready" and f["id"] not in jobs:
             rows.append(f"new\t{f['id']}\tready\t{f['title']}")
     active = sum(1 for r in rows if r.startswith("resume"))
-    print(f"concurrency {cfg['concurrency']}, active {active}")
+    mode = ", mode non-interactive" if NON_INTERACTIVE else ""
+    print(f"concurrency {cfg['concurrency']}, active {active}{mode}")
     print("\n".join(rows) if rows else "nothing queued")
 
 
@@ -572,7 +581,102 @@ def cmd_prompt(job, role):
         line += f" Port: {data['port'] + (2 if role == 'ui' else 0)}."
     if role not in ("intake", "spec-writer"):
         line += f" Round: {data['round'] + (1 if role == 'builder' else 0)}."
+    if NON_INTERACTIVE:
+        line += " Mode: non-interactive."
     print(line)
+
+
+# ---------------------------------------------------------------- preflight
+
+def sections(text):
+    """## heading -> body, with HTML comments and template placeholders (<...>) removed."""
+    body = re.sub(r"^---\n.*?\n---\n", "", text, count=1, flags=re.S)
+    body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+    out, name = {}, None
+    for line in body.splitlines():
+        m = re.match(r"##\s+(.+?)\s*$", line)
+        if m:
+            name = m.group(1)
+            out[name] = ""
+        elif name:
+            out[name] += line + "\n"
+    return {k: re.sub(r"^\s*<[^>\n]*>\s*$", "", v, flags=re.M).strip() for k, v in out.items()}
+
+
+def component_ids():
+    """Component ids from docs/project.yaml (portfolio-map's manifest), nested sub-components included."""
+    manifest = REPO / "docs" / "project.yaml"
+    if not manifest.exists():
+        return None
+    text = manifest.read_text()
+    m = re.search(r"^components:\s*\n(.*?)(?=^\S|\Z)", text, re.M | re.S)
+    return set(re.findall(r"^\s*-?\s*id:\s*[\"']?([\w.-]+)", m.group(1), re.M)) if m else set()
+
+
+def feature_problems(text, cfg):
+    meta = frontmatter(text)
+    problems = []
+    if not meta:
+        return ["no frontmatter (a --- block with title and status)"]
+    if not meta.get("title"):
+        problems.append("frontmatter: no title")
+    if meta.get("status") != "ready":
+        problems.append(f"frontmatter: status is '{meta.get('status', '')}', only 'ready' runs")
+    found = sections(text)
+    for name in REQUIRED_SECTIONS:
+        if not found.get(name):
+            hint = " (observable checks, one per line: the reviewers and the approver judge against them)" \
+                if name == "Done when" else ""
+            problems.append(f"## {name} is missing or empty{hint}")
+    comp = meta.get("component")
+    ids = component_ids()
+    if comp and ids is not None and comp not in ids:
+        problems.append(f"component '{comp}' is not in docs/project.yaml (known: {', '.join(sorted(ids)) or 'none'})")
+    if meta.get("priority") and not str(meta["priority"]).isdigit():
+        problems.append(f"frontmatter: priority '{meta['priority']}' is not a whole number")
+    return problems
+
+
+def check_root():
+    return worktree_root().parent.parent / "checks" / worktree_root().name
+
+
+def cmd_check(feature):
+    """Fixed rules for running a feature unattended, then a folder and prompt line for intake's preflight.
+
+    A path is read from disk (a feature still on its branch, before the PR); anything else is looked up
+    on the base branch. Nothing is written to the repo: the folder lives next to the worktrees."""
+    cfg = load_config()
+    path = Path(feature)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if path.is_file():
+        text, stem = path.read_text(), path.stem
+    else:
+        hit = [f for f in features_on_base(cfg) if f["id"] == feature
+               or f["id"].startswith(f"{feature.zfill(3)}-") or f["path"] == feature]
+        if not hit:
+            raise Refused(f"no feature {feature}: not a file, and not in docs/features/ on origin/{cfg['base_branch']}")
+        text, stem = sh("git", "show", f"origin/{cfg['base_branch']}:{hit[0]['path']}", cwd=REPO), hit[0]["id"]
+    if not re.match(r"\d{3}-[a-z0-9-]+$", stem):
+        raise Refused(f"{stem}: feature files are named NNN-slug.md")
+    problems = []
+    if not (REPO / ".factory" / "checks.sh").exists():
+        problems.append(f"{REPO.name} is not set up for the software factory: run /factory init and merge it")
+    problems += feature_problems(text, cfg)
+    folder = check_root() / stem
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.glob("*.md"):
+        old.unlink()
+    (folder / "feature.md").write_text(text if text.endswith("\n") else text + "\n")
+    print("problems: " + ("none" if not problems else str(len(problems))))
+    for p in problems:
+        print(f"- {p}")
+    print(f"folder: {folder}/")
+    print(f"prompt: Plugin: {PLUGIN}. Repo: {REPO}. Job folder: {folder}/. Worktree: none (read the code in "
+          f"Repo). Base: origin/{cfg['base_branch']}. Mode: preflight.")
+    if problems:
+        raise Refused("fix the problems above, then check again")
 
 
 def main(argv):
@@ -581,7 +685,7 @@ def main(argv):
         "advance": (cmd_advance, 2), "gate": (cmd_gate, 1), "review-done": (cmd_review_done, 1),
         "finish": (cmd_finish, 1), "feedback": (cmd_feedback, 1), "answer": (cmd_answer, 1),
         "reject": (cmd_reject, 1), "sync": (cmd_sync, 0), "status": (cmd_status, None),
-        "prompt": (cmd_prompt, 2),
+        "prompt": (cmd_prompt, 2), "check": (cmd_check, 1),
     }
     if not argv or argv[0] not in cmds:
         print(__doc__)

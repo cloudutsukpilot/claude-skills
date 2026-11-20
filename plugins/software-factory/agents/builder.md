@@ -77,3 +77,8 @@ why not.
 Write `STATUS: BLOCKED` on the first line instead when you can't meet the spec (it contradicts itself,
 it needs a decision only the user can make, the environment fails), and explain under `## Blocked`.
 Never paper over a failure.
+
+With `Mode: non-interactive` in your prompt (CI: nobody answers until the run ends), don't block on a
+choice the spec leaves open: take the option that is smallest, easiest to undo and closest to the repo's
+conventions, and list it under `## Assumptions` in build.md (the approver sees it). Block only when the
+environment fails, a tool or access you need is missing, or the spec contradicts itself.

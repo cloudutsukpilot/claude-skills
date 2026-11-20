@@ -48,6 +48,7 @@ Choices you made where the request was ambiguous, each with a one-line reason.
 ## Rules
 
 - The smallest change that fully meets the scope. No options, fallbacks or extras.
+- Carry intake's `## Assumptions` into yours: the builder and the approver read the spec, not intake.md.
 - Reuse what exists: name the existing pattern, helper or component in Context and require it.
 - Always include, as the last requirement: set `status: done` in the feature file
   (`<feature path from job.json>`) and add a `## Factory` section with the job id, today's date, what

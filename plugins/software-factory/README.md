@@ -53,6 +53,7 @@ and opens a PR with them. See [reference/repo-setup.md](reference/repo-setup.md)
 
 ```
 /factory new <description>      write docs/features/NNN-slug.md (status: ready) and open a PR for it
+/factory check <feature>        is it ready to run with nobody to ask? fixed rules, then intake's questions now
 /factory run [<feature>]        work every ready feature (or one), `concurrency` at a time; resumes jobs
 /factory status                 every job: stage, round, reviews, PR
 /factory answer <job> <text>    answer intake's questions on a needs-info job
@@ -63,6 +64,15 @@ and opens a PR with them. See [reference/repo-setup.md](reference/repo-setup.md)
 
 Only features with `status: ready` **on the base branch** run, so queuing a feature is a reviewed
 change too. The file format is in [reference/feature-format.md](reference/feature-format.md).
+
+### Unattended runs (CI)
+
+With `FACTORY_NON_INTERACTIVE=1`, `/factory run` never asks or waits: each agent's prompt says
+`Mode: non-interactive`, intake and the builder take the reasonable reading and list it under
+`## Assumptions` (the approver checks them), and a job that still needs you stops at `needs-info` or
+`needs-human` with the questions in the report. Run `/factory check <feature>` before queuing, so
+intake's questions come while you can still answer them in the feature file. The homelab's
+`portfolio-tasks.yaml` workflow (homelab-gitops) runs both: the check on the pull request, the run on merge.
 
 ## What is where
 
