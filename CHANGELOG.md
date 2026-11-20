@@ -2,6 +2,16 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.4.1 — 2026-11-20
+
+- Stable layout: opening a component inside an open group no longer moves that group back to its base
+  position. Before, the component opened last and its open ancestors were pinned at their base centers,
+  so when a level opened several groups at once (and one had been pushed aside), opening a component
+  in the pushed group sent it back and pushed its neighbours the other way: on 4 of 7 blog diagrams,
+  opening some components put a neighbour on its other side. The layout is now replayed in the order
+  components were opened, each step starting from the one before, so a box pushed earlier stays where
+  it is. Closing still restores the layout exactly.
+
 ## interactive-diagrams 1.4.0 — 2026-11-20
 
 - Stable layout, the new default for every level: opening or closing a component no longer lays out the

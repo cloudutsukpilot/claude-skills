@@ -1,6 +1,6 @@
 # Plan: stable layout for interactive diagrams
 
-**Status (2026-11-20):** Phases 1 and 2 done (plugin 1.4.0 released and installed on the Spark). Phase 3 (blog engine) next.
+**Status (2026-11-20):** Phases 1 and 2 done (plugin 1.4.0 released and installed on the Spark). Phase 3 (blog engine) found a bug in the stable layout, fixed in plugin 1.4.1 (in review) and in the blog's PR (in review).
 
 ## Goal
 
@@ -26,7 +26,16 @@ Closing it moves them back exactly.
   7553×4134, layout about 90 ms.
 - **Closing restores exactly.** Positions are a function of the base layouts, what is open and the
   order it was opened in (closing a component removes it from that order), so closing gives back the
-  layout from before it opened. The camera also compensates if the clicked component moved at all, so
+  layout from before it opened.
+- **Replay the open order** (changed in 1.4.1, found while porting to the blog). 1.4.0 pinned only the
+  component opened last and its ancestors, at their base centers. When a level opens several groups,
+  nothing is pinned and one of them may be pushed aside; opening a component inside it then sent that
+  group back to its base and pushed its neighbours the other way (a neighbour crossed to its other side
+  on 4 of the 7 blog diagrams). Now the layout is computed step by step: first the groups the level
+  opened, then each component in the order it was opened, each step starting from the positions the
+  step before left and pinning that step's component and its ancestors. Opening never moves a box that
+  was pushed earlier back, and closing still restores exactly (the replay is a function of the open
+  order). The camera also compensates if the clicked component moved at all, so
   it stays at the same place on screen when opening and when closing.
 - **Hidden components** (view-only, outside their view) keep their base space (making them size 0
   could pull two neighbours into each other). Open groups draw their frame tight around their visible
@@ -48,6 +57,7 @@ Closing it moves them back exactly.
 |---|---|---|---|
 | 1. Plugin engine: stable layout, router, camera, `layout: auto`, validator, docs, version 1.4.0 | Done (2026-11-20) | #10 | Nothing. Merged and tagged `interactive-diagrams-v1.4.0` |
 | 2. Install the new plugin version on the Spark (`claude plugin` update) | Done (2026-11-20) | — | Nothing. `claude plugin marketplace update cloudutsuk` and `claude plugin update interactive-diagrams@cloudutsuk`: 1.1.0 → 1.4.0 (restart Claude Code to load it) |
-| 3. Blog engine and `cloudutsuk-diagram` skill docs | Next | — | Copy the engine, rebuild and preview a blog diagram, PR in `sakharams.github.io` |
+| 1b. Plugin 1.4.1: replay the open order (bug found in phase 3) | In review | — | Merge the PR, tag `interactive-diagrams-v1.4.1`, then `claude plugin marketplace update cloudutsuk` and `claude plugin update interactive-diagrams@cloudutsuk` on the Spark |
+| 3. Blog engine and `cloudutsuk-diagram` skill docs | In review | — | Merge the blog PR (engine 1.4.1 with the blog header, validator `layout` rule, preview checks, SKILL.md and PLAN.md); then check the deploy |
 
-Waiting on you: merge this plan update. Then try the new layout (restart Claude Code first) before phase 3 starts.
+Waiting on you: merge the plugin 1.4.1 PR and the blog PR (either order; the engines are the same apart from the header).
