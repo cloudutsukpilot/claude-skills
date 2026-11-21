@@ -2,6 +2,17 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.6.1 — 2026-11-22
+
+- Arrow labels no longer sit on other arrows' pills. With `layout: auto`, ELK kept room only for the
+  protocol pill, beside the arrow, and the renderer then drew the pill on the line with the text label
+  18px above it, so two close parallel arrows collided: in the web-shop example's level 0 the "paid"
+  label of the Payments webhook covered the "HTTPS :443" pill of the charge arrow. ELK now keeps an
+  inline box centered on the line that holds the pill and its label, and both layouts place pills and
+  labels with one pass (`placeLabels`) that checks each label as its own box, as wide as its text,
+  against components and every pill and label placed before; a label on an arrow without a pill is
+  placed the same way. The stable layout (the default) keeps its component positions.
+
 ## software-factory 0.3.0 — 2026-11-21
 
 - `/factory init` also writes `docs/plans/README.md` (from the new `templates/plans-README.md`), so every repo keeps
