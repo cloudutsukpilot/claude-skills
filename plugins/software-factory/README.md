@@ -45,6 +45,7 @@ In the repo, run `/factory init`. It writes:
 .factory/config.json    optional overrides (models, reviewers, escalate_paths, …)
 .factory/lenses/*.md    optional repo-specific checklists for reviewers
 docs/features/README.md
+docs/plans/README.md    plans live here in every repo (an older docs/plan.md stays, linked from it)
 ```
 
 and opens a PR with them. See [reference/repo-setup.md](reference/repo-setup.md).

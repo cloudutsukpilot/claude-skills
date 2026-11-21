@@ -9,12 +9,17 @@ A repo needs three things, all committed on its base branch:
   config.json       optional: overrides of the plugin's defaults (below)
   lenses/           optional: extra checklist per reviewer, e.g. lenses/infra.md
 docs/features/      the queue (format in feature-format.md)
+docs/plans/         the repo's plans, one file each; README.md from templates/plans-README.md
 AGENTS.md           (or CLAUDE.md) how to set up a fresh checkout, run the app, run the tests
 ```
 
-`/factory init` writes `.factory/` and `docs/features/README.md` from the templates, fills
+`/factory init` writes `.factory/`, `docs/features/README.md` and `docs/plans/README.md` from the templates, fills
 `checks.sh` from what AGENTS.md, the Makefile, `package.json`, `pyproject.toml` and the CI workflows
 say the checks are, runs it on the base branch, and opens a PR.
+
+`docs/plans/` is the same in every repo: one Markdown file per plan, each with a Progress table. A repo that
+already keeps its plan elsewhere (often a single `docs/plan.md`) keeps it there; the folder's README links it,
+and new plans go in the folder.
 
 ## checks.sh
 

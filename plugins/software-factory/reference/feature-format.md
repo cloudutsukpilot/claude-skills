@@ -8,7 +8,7 @@ docs/
     README.md                   optional: a line saying what this folder is
     001-reading-time.md
     002-not-found-page.md
-  plans/                        plans stay where they are; a plan's Progress row can link a feature file
+  plans/                        one file per plan (README from /factory init); a Progress row links the feature file
 ```
 
 Number features in order (`001`, `002`, …) with a short kebab-case slug. The number and slug never

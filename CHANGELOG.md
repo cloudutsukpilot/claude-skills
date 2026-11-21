@@ -2,6 +2,13 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## software-factory 0.3.0 — 2026-11-21
+
+- `/factory init` also writes `docs/plans/README.md` (from the new `templates/plans-README.md`), so every repo keeps
+  its plans in the same folder: one file per plan, each with a Progress table whose rows link the feature files that
+  deliver them. A plan already kept elsewhere (often a single `docs/plan.md`) stays where it is and the README links
+  it. `factory.py init-check` reports a missing `docs/plans`.
+
 ## interactive-diagrams 1.6.0 — 2026-11-21
 
 - Bands for flow diagrams: `bands:` (top level or a group) lists horizontal swimlanes, `band:` puts a

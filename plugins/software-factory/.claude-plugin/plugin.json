@@ -1,6 +1,6 @@
 {
   "name": "software-factory",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A software factory for any repo: feature files in docs/features/ go through intake, spec, build, the repo's own checks, routed reviewers and an approver, and each ends as a reviewed pull request that you merge.",
   "author": {
     "name": "Sakharam Shinde",
