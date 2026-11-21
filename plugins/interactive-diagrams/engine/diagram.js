@@ -1413,45 +1413,11 @@
         skip: new Set([...this.ancestorsOf(v.from), ...this.ancestorsOf(v.to)].map((a) => a.id))
       }));
       const paths = routeOrtho(placed.nodes, routes, this.data.direction || 'right');
-      // Pills: on the longest segment that has room, clear of components and of the pills placed
-      // before (an arrow's label sits just above its pill, so it counts too).
-      const leaves = [...placed.nodes.values()].filter((p) => !p.group);
-      const taken = [];
-      const area = (r, o) => Math.max(0, Math.min(r.x + r.w, o.x + o.w) - Math.max(r.x, o.x)) * Math.max(0, Math.min(r.y + r.h, o.y + o.h) - Math.max(r.y, o.y));
-      // Overlap with components weighs more than with other pills.
-      const clash = (r) => taken.reduce((s, o) => s + area(r, o), 0) + 2 * leaves.reduce((s, o) => s + area(r, o), 0);
-      const TS = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9];
       for (const v of vis) {
         const pts = paths.get(v.key);
-        if (!pts) continue;
-        const text = this.pillText(v);
-        let label = null;
-        if (text) {
-          const w = text.length * 6.8 + 14;
-          const above = v.list.length === 1 && v.list[0].label ? 18 : 0;
-          const segs = [];
-          for (let k = 1; k < pts.length; k++) segs.push([pts[k - 1], pts[k], Math.abs(pts[k][0] - pts[k - 1][0]) + Math.abs(pts[k][1] - pts[k - 1][1])]);
-          segs.sort((p, q) => q[2] - p[2]);
-          // The middle of the longest segment if it is free, else the free spot nearest to it, else
-          // the spot with the least overlap.
-          let best = null;
-          for (const [p, q] of segs.slice(0, 3)) {
-            for (const t of TS) {
-              const at = { x: p[0] + (q[0] - p[0]) * t, y: p[1] + (q[1] - p[1]) * t };
-              const r = { x: at.x - w / 2 - 2, y: at.y - 12 - above, w: w + 4, h: 24 + above };
-              const score = clash(r);
-              if (!best || score < best.score) best = { at, r, score };
-              if (!score) break;
-            }
-            if (best && !best.score) break;
-          }
-          if (best) {
-            label = best.at;
-            taken.push(best.r);
-          }
-        }
-        placed.edges.set(v.key, { pts, label });
+        if (pts) placed.edges.set(v.key, { pts, label: null });
       }
+      this.placeLabels(placed, vis);
       return placed;
     }
 
@@ -1543,9 +1509,9 @@
           addPort(Y, pid, 'WEST');
           return [Y, pid];
         });
-        const pill = this.pillText(v);
+        const room = this.labelRoom(v);
         const labelled = ids.length;
-        seg(lca, from, ins.length ? ins[ins.length - 1][1] : v.to, pill ? [{ text: pill, width: pill.length * 6.8 + 16, height: 22 }] : null);
+        seg(lca, from, ins.length ? ins[ins.length - 1][1] : v.to, room ? [room] : null);
         for (let i = ins.length - 1; i >= 0; i--) seg(ins[i][0], ins[i][1], i ? ins[i - 1][1] : v.to);
         segments.set(v.key, [ids, labelled]);
       });
@@ -1585,7 +1551,58 @@
         });
         placed.edges.set(key, { pts, label });
       }
+      // ELK keeps room for each pill but not for the text label drawn above it, and labels of arrows in
+      // different containers never see each other: check every spot as the stable layout does.
+      this.placeLabels(placed, vis);
       return placed;
+    }
+
+    // Where each arrow's protocol pill and its text label (drawn just above the pill, or alone in the
+    // middle of the arrow when it has no pill) go: the spot the layout suggested if it is free, else the
+    // middle of the longest segment that is free, else the free spot nearest to it, else the spot with
+    // the least overlap. Free means clear of components and of the pills and labels placed before; the
+    // pill and the label are checked as two boxes, each as wide as its own text. Sets edges' `label`.
+    placeLabels(placed, vis) {
+      const leaves = [...placed.nodes.values()].filter((p) => !p.group);
+      const taken = [];
+      const area = (r, o) => Math.max(0, Math.min(r.x + r.w, o.x + o.w) - Math.max(r.x, o.x)) * Math.max(0, Math.min(r.y + r.h, o.y + o.h) - Math.max(r.y, o.y));
+      // Overlap with components weighs more than with other pills and labels.
+      const clash = (rs) => rs.reduce((s, r) => s + taken.reduce((t, o) => t + area(r, o), 0) + 2 * leaves.reduce((t, o) => t + area(r, o), 0), 0);
+      const TS = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9];
+      for (const v of vis) {
+        const pe = placed.edges.get(v.key);
+        if (!pe || !pe.pts || pe.pts.length < 2) continue;
+        const text = this.pillText(v);
+        const caption = v.list.length === 1 ? v.list[0].label : null;
+        if (!text && !caption) continue;
+        const pw = text ? text.length * 6.8 + 14 : 0;
+        const lw = caption ? String(caption).length * 6.6 + 8 : 0;
+        // The boxes around a spot on the arrow (the label's text sits 18px above the pill's center,
+        // or 8px above the arrow without a pill; 11px bold, about 12px tall).
+        const boxes = (at) => [
+          ...(text ? [{ x: at.x - pw / 2 - 2, y: at.y - 12, w: pw + 4, h: 24 }] : []),
+          ...(caption ? [{ x: at.x - lw / 2, y: at.y - (text ? 18 : 8) - 11, w: lw, h: 14 }] : [])
+        ];
+        const pts = pe.pts;
+        const cands = [];
+        if (pe.label) {
+          const q = nearestOnPath(measure(pts), pe.label.x, pe.label.y);
+          cands.push({ x: q.x, y: q.y });
+        }
+        const segs = [];
+        for (let k = 1; k < pts.length; k++) segs.push([pts[k - 1], pts[k], Math.abs(pts[k][0] - pts[k - 1][0]) + Math.abs(pts[k][1] - pts[k - 1][1])]);
+        segs.sort((p, q) => q[2] - p[2]);
+        for (const [p, q] of segs.slice(0, 3)) for (const t of TS) cands.push({ x: p[0] + (q[0] - p[0]) * t, y: p[1] + (q[1] - p[1]) * t });
+        let best = null;
+        for (const at of cands) {
+          const rs = boxes(at);
+          const score = clash(rs);
+          if (!best || score < best.score) best = { at, rs, score };
+          if (!score) break;
+        }
+        pe.label = best.at;
+        taken.push(...best.rs);
+      }
     }
 
     geoLayout() {
@@ -1619,6 +1636,17 @@
         placed.edges.set(v.key, { pts, label: null });
       }
       return placed;
+    }
+
+    // The room ELK keeps on an arrow (inline labels: centered on the line, where the pill is drawn) for
+    // its pill and, when it has one, the text label 18px above the pill: the box is centered on the
+    // line, so the label's height is kept on both sides.
+    labelRoom(v) {
+      const text = this.pillText(v);
+      const caption = v.list.length === 1 ? v.list[0].label : null;
+      if (!text && !caption) return null;
+      const w = Math.max(text ? text.length * 6.8 + 16 : 0, caption ? String(caption).length * 6.6 + 8 : 0);
+      return { text: text || String(caption), width: w, height: text ? (caption ? 58 : 22) : 38, layoutOptions: { 'elk.edgeLabels.inline': 'true' } };
     }
 
     // ---------------------------------------------------------------- render
@@ -1884,7 +1912,7 @@
       }
       if (e0.label && v.list.length === 1) {
         // Just above the pill, so the two read together; else the middle of the arrow.
-        const at = pillAt || pointAt(m, m.total * 0.5);
+        const at = pillAt || (pe.label ? nearestOnPath(m, pe.label.x, pe.label.y) : pointAt(m, m.total * 0.5));
         const lab = make('text', { class: 'dgm-link-label', x: at.x, y: at.y - (pill ? 18 : 8), 'text-anchor': 'middle' }, this.pillLayer);
         lab.textContent = e0.label;
       }
