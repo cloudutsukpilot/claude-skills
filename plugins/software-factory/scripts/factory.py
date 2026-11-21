@@ -196,7 +196,7 @@ def gh_repo():
 
 def cmd_init_check():
     missing = []
-    for p in (".factory/checks.sh", ".factory/.gitignore", "docs/features"):
+    for p in (".factory/checks.sh", ".factory/.gitignore", "docs/features", "docs/plans"):
         if not (REPO / p).exists():
             missing.append(p)
     if not any((REPO / n).exists() for n in ("AGENTS.md", "CLAUDE.md")):

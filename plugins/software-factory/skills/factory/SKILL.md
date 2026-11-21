@@ -71,7 +71,11 @@ Set the current repo up (`reference/repo-setup.md`):
 2. Create `.factory/.gitignore` (from `$PLUGIN/templates/gitignore`), `.factory/checks.sh` (from
    `templates/checks.sh`, then replace its placeholder with the repo's real checks: read AGENTS.md /
    CLAUDE.md, the Makefile, `package.json`, `pyproject.toml` and `.github/workflows/` and use what CI
-   runs that can run locally), and `docs/features/README.md` (from `templates/features-README.md`).
+   runs that can run locally), `docs/features/README.md` (from `templates/features-README.md`) and
+   `docs/plans/README.md` (from `templates/plans-README.md`), so every repo keeps its plans in the same folder.
+   If the repo already has a plan elsewhere (often a single `docs/plan.md`), leave it where it is and add a line
+   to `docs/plans/README.md` that links it (`Older plan: [docs/plan.md](../plan.md)`); new plans go in
+   `docs/plans/`. Keep an existing `docs/plans/README.md` as it is.
    Add `.factory/config.json` only for values that differ from `templates/config.json`, for example
    `escalate_paths` for paths that deploy on merge, or `always_reviewers: ["docs"]`.
 3. Offer `.factory/lenses/<lens>.md` for rules specific to this repo that its AGENTS.md states (admission
