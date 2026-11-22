@@ -728,7 +728,11 @@
       this.buildModel();
       this.buildChrome();
       this.clearUrlState();
-      this.relayout({ fit: true, animate: false }).then(() => root.classList.add('is-ready'));
+      this.relayout({ fit: true, animate: false }).then(() => {
+        root.classList.add('is-ready');
+        // `zoom_lock: true` locks the zoom the diagram opened at (after the first fit, not before it).
+        if (this.data.zoom_lock === true) this.setZoomLock(true);
+      });
     }
 
     // ---------------------------------------------------------------- model
@@ -821,12 +825,11 @@
       make('feMergeNode', { in: 'b' }, merge);
       make('feMergeNode', { in: 'SourceGraphic' }, merge);
 
-      // Toolbar: one button per level (clicking steps there layer by layer), zoom, fit, fullscreen.
-      const bar = r.querySelector('.dgm-toolbar');
+      // Sidebar: Levels (one button per level; clicking steps there layer by layer), then Views and Use
+      // cases (buildViews, buildTour), each a collapsible menu; zoom, Fit and fullscreen at its foot.
+      const bar = r.querySelector('.dgm-side-foot');
       const names = this.data.levels || [];
-      const lv = html('div', 'dgm-levels', bar);
-      lv.setAttribute('role', 'group');
-      lv.setAttribute('aria-label', 'Detail level');
+      const lv = this.menu('levels', 'Levels', 'Detail level');
       this.levelBtns = [];
       for (let i = 0; i <= this.maxLevel; i++) {
         const b = html('button', 'dgm-lvl', lv);
@@ -846,16 +849,21 @@
         b.innerHTML = `<i class="fas fa-${icon}" aria-hidden="true"></i>`;
         return b;
       };
-      btn('zoom-in', 'plus', 'Zoom in');
-      btn('zoom-out', 'minus', 'Zoom out');
+      // Zoom lock: holds the current zoom. Buttons, Ctrl + scroll, pinch and +/- stop zooming, and the
+      // camera moves of levels, Fit and use cases only pan. Dragging still moves around.
+      this.zoomLockBtn = btn('zoom-lock', 'lock-open', 'Lock zoom');
+      this.zoomLockBtn.classList.add('dgm-btn-zoomlock');
+      this.zoomBtns = [btn('zoom-in', 'plus', 'Zoom in'), btn('zoom-out', 'minus', 'Zoom out')];
+      this.setZoomLock(false);
       btn('fit', 'expand', 'Fit to view');
       btn('full', 'up-right-and-down-left-from-center', 'Fullscreen');
       bar.addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-act]');
         if (!b) return;
         const a = b.dataset.act;
-        if (a === 'zoom-in') this.zoomBy(1.25);
-        if (a === 'zoom-out') this.zoomBy(0.8);
+        if (a === 'zoom-lock') this.setZoomLock(!this.zoomLocked);
+        if (a === 'zoom-in') this.userZoom(1.25);
+        if (a === 'zoom-out') this.userZoom(0.8);
         if (a === 'fit') this.fit(true);
         if (a === 'full') this.toggleFull();
       });
@@ -881,6 +889,65 @@
       this.bindFullscreen();
       this.buildViews();
       this.buildTour();
+      this.bindSideToggle();
+    }
+
+    // The sidebar folds to a narrow strip that keeps only the zoom, Fit and fullscreen buttons; the
+    // canvas takes the room and keeps its centre, and the choice is remembered in this browser.
+    bindSideToggle() {
+      const b = this.root.querySelector('[data-act="side-collapse"]');
+      if (!b) return;
+      const storeKey = `dgm-side-collapsed:${this.root.id}`;
+      const set = (on, save) => {
+        const W = this.stage.clientWidth;
+        const H = this.stage.clientHeight;
+        this.root.classList.toggle('is-side-collapsed', on);
+        const label = on ? 'Show the sidebar' : 'Hide the sidebar';
+        b.setAttribute('aria-expanded', on ? 'false' : 'true');
+        b.setAttribute('aria-label', label);
+        b.title = label;
+        const dw = this.stage.clientWidth - W;
+        const dh = this.stage.clientHeight - H;
+        if (dw || dh) {
+          cancelAnimationFrame(this.camRaf);
+          this.cam = { ...this.cam, x: this.cam.x + dw / 2, y: this.cam.y + dh / 2 };
+          this.applyCam();
+        }
+        if (save) try { localStorage.setItem(storeKey, on ? '1' : '0'); } catch (e) { /* storage blocked: lasts for this page only */ }
+      };
+      let saved = null;
+      try {
+        saved = localStorage.getItem(storeKey);
+      } catch (e) { /* storage blocked */ }
+      set(saved === '1', false);
+      b.addEventListener('click', () => set(!this.root.classList.contains('is-side-collapsed'), true));
+    }
+
+    // A collapsible menu in the sidebar: its head toggles the items, and the reader's choice is
+    // remembered per diagram in this browser. Returns the element that holds the items.
+    menu(id, title, label) {
+      const menus = this.root.querySelector('.dgm-side-menus');
+      const sec = html('section', `dgm-menu dgm-menu-${id}`, menus);
+      const head = html('button', 'dgm-menu-head', sec);
+      head.type = 'button';
+      head.innerHTML = `<span>${esc(title)}</span><span class="dgm-menu-meta"></span><i class="fas fa-chevron-down" aria-hidden="true"></i>`;
+      const items = html('div', 'dgm-menu-items', sec);
+      items.setAttribute('aria-label', label || title);
+      items.id = `${this.root.id}-menu-${id}`;
+      head.setAttribute('aria-controls', items.id);
+      const key = `dgm-menu-${id}:${this.root.id}`;
+      const set = (open, save) => {
+        sec.classList.toggle('is-closed', !open);
+        head.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (save) try { localStorage.setItem(key, open ? '1' : '0'); } catch (e) { /* storage blocked: lasts for this page only */ }
+      };
+      let saved = null;
+      try {
+        saved = localStorage.getItem(key);
+      } catch (e) { /* storage blocked */ }
+      set(saved !== '0', false);
+      head.addEventListener('click', () => set(sec.classList.contains('is-closed'), true));
+      return items;
     }
 
     updateLevelLabel() {
@@ -940,9 +1007,9 @@
     // ---------------------------------------------------------------- view tabs
     buildViews() {
       if (!this.views.length) return;
-      const bar = html('div', 'dgm-views', this.stage);
+      const bar = this.menu('views', 'Views');
+      bar.classList.add('dgm-views');
       bar.setAttribute('role', 'tablist');
-      bar.setAttribute('aria-label', 'Views');
       const count = (id) => (id === ALL_VIEWS ? this.edges.length : this.edges.filter((e) => (id ? e.viewList.includes(id) : e.mainFlow)).length);
       // Main flows first, the diagram's views, then Show all (every view's arrows and components).
       [{ id: null, label: 'Main flows', icon: 'api' }, ...this.views, { id: ALL_VIEWS, label: 'Show all', icon: 'cluster' }].forEach((v) => {
@@ -2266,8 +2333,45 @@
       this.view.setAttribute('transform', `translate(${this.cam.x},${this.cam.y}) scale(${this.cam.k})`);
       this.root.style.setProperty('--dgm-zoom', this.cam.k);
     }
+    // With the zoom locked, a camera move keeps the current zoom and centres on the point the move
+    // aimed at, so it only pans.
+    lockCam(to) {
+      if (!this.zoomLocked || Math.abs(to.k - this.cam.k) < 1e-6) return to;
+      const W = this.stage.clientWidth;
+      const H = this.stage.clientHeight;
+      const { k } = this.cam;
+      const wx = (W / 2 - to.x) / to.k;
+      const wy = (H / 2 - to.y) / to.k;
+      return { k, x: W / 2 - k * wx, y: H / 2 - k * wy };
+    }
+    setZoomLock(on) {
+      this.zoomLocked = on;
+      const b = this.zoomLockBtn;
+      if (b) {
+        b.innerHTML = `<i class="fas fa-${on ? 'lock' : 'lock-open'}" aria-hidden="true"></i>`;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const label = on ? 'Zoom locked: click to zoom in and out again' : 'Lock zoom at this level';
+        b.setAttribute('aria-label', label);
+        b.title = label;
+      }
+      for (const z of this.zoomBtns || []) z.disabled = on;
+      this.root.classList.toggle('is-zoom-locked', on);
+    }
+    // A zoom the reader asked for (buttons, wheel, pinch, keys): refused while the zoom is locked.
+    userZoom(f, cx, cy) {
+      if (this.zoomLocked) return this.flashHint('Zoom is locked: unlock it at the foot of the sidebar to zoom');
+      this.zoomBy(f, cx, cy);
+    }
+    flashHint(text) {
+      const hint = this.root.querySelector('.dgm-hint');
+      if (hint && text) hint.textContent = text;
+      this.root.classList.add('show-hint');
+      clearTimeout(this.hintTimer);
+      this.hintTimer = setTimeout(() => this.root.classList.remove('show-hint'), 1400);
+    }
     animateCam(to, animate = true) {
       cancelAnimationFrame(this.camRaf);
+      to = this.lockCam(to);
       if (!animate || reduceMotion) {
         this.cam = to;
         this.applyCam();
@@ -2303,8 +2407,8 @@
       const W = this.stage.clientWidth;
       const H = this.stage.clientHeight;
       const pad = 28;
-      // Keep clear of the view tabs at the top (and the banner at the bottom).
-      const top = this.viewBar ? this.viewBar.offsetHeight + 16 : 0;
+      // Keep clear of the player's tab at the top of the canvas.
+      const top = this.root.classList.contains('has-player') ? 22 : 0;
       const k = Math.min(maxK, (W - 2 * pad) / Math.max(1, b.x1 - b.x0), (H - 2 * pad - top) / Math.max(1, b.y1 - b.y0));
       return { k, x: (W - k * (b.x1 + b.x0)) / 2, y: top + (H - top - k * (b.y1 + b.y0)) / 2 };
     }
@@ -2353,7 +2457,8 @@
       const W = this.stage.clientWidth;
       const H = this.stage.clientHeight;
       const pad = 28;
-      const top = this.viewBar ? this.viewBar.offsetHeight + 16 : 0;
+      // Keep clear of the player's tab at the top of the canvas.
+      const top = this.root.classList.contains('has-player') ? 22 : 0;
       const { k } = this.cam;
       const [cx, cy] = p.c || [p.x + p.w / 2, p.y + p.h / 2];
       const [ox, oy] = was || [cx, cy];
@@ -2369,7 +2474,7 @@
         (sy - top - pad) / Math.max(1, cy - p.y),
         (H - pad - sy) / Math.max(1, p.y + p.h - cy)
       );
-      const nk = fitK >= k - 1e-3 ? k : Math.max(0.2, fitK);
+      const nk = this.zoomLocked || fitK >= k - 1e-3 ? k : Math.max(0.2, fitK);
       const to = { k: nk, x: sx - nk * cx, y: sy - nk * cy };
       if (Math.abs(to.k - k) < 1e-3 && Math.abs(to.x - this.cam.x) < 0.5 && Math.abs(to.y - this.cam.y) < 0.5) return;
       this.animateCam(to, animate);
@@ -2422,7 +2527,7 @@
           const [a, b] = [...pts.values()];
           const box = st.getBoundingClientRect();
           const d = Math.hypot(a.x - b.x, a.y - b.y);
-          this.zoomBy((pinch.k * d) / pinch.d / this.cam.k, (a.x + b.x) / 2 - box.left, (a.y + b.y) / 2 - box.top);
+          if (!this.zoomLocked) this.zoomBy((pinch.k * d) / pinch.d / this.cam.k, (a.x + b.x) / 2 - box.left, (a.y + b.y) / 2 - box.top);
           this.dragged = true;
           return;
         }
@@ -2447,15 +2552,12 @@
       st.addEventListener(
         'wheel',
         (ev) => {
-          if (!(ev.ctrlKey || ev.metaKey || this.root.classList.contains('is-full'))) {
-            this.root.classList.add('show-hint');
-            clearTimeout(this.hintTimer);
-            this.hintTimer = setTimeout(() => this.root.classList.remove('show-hint'), 1200);
-            return;
-          }
+          const wantsZoom = ev.ctrlKey || ev.metaKey || this.root.classList.contains('is-full');
+          // Locked: a plain scroll still scrolls the page; a zoom gesture says the zoom is locked.
+          if (!wantsZoom) return this.flashHint(this.zoomLocked ? 'Zoom is locked' : 'Ctrl + scroll (or pinch) to zoom');
           ev.preventDefault();
           const box = st.getBoundingClientRect();
-          this.zoomBy(Math.exp(-ev.deltaY * 0.0022), ev.clientX - box.left, ev.clientY - box.top);
+          this.userZoom(Math.exp(-ev.deltaY * 0.0022), ev.clientX - box.left, ev.clientY - box.top);
         },
         { passive: false }
       );
@@ -2470,8 +2572,8 @@
           ev.preventDefault();
           this.cam = { ...this.cam, x: this.cam.x + moves[ev.key][0], y: this.cam.y + moves[ev.key][1] };
           this.applyCam();
-        } else if (ev.key === '+' || ev.key === '=') this.zoomBy(1.2);
-        else if (ev.key === '-') this.zoomBy(1 / 1.2);
+        } else if (ev.key === '+' || ev.key === '=') this.userZoom(1.2);
+        else if (ev.key === '-') this.userZoom(1 / 1.2);
         else if (ev.key === '0') this.fit(true);
       });
       window.addEventListener('resize', () => {
@@ -2542,9 +2644,12 @@
       this.playing = false;
       this.run = 0;
       this.locked = this.data.lock === true;
-      const dots = ctl.querySelector('.dgm-dots');
+      const player = this.root.querySelector('.dgm-player');
+      const handle = player && player.querySelector('.dgm-player-handle');
+      const stepN = ctl.querySelector('.dgm-step-n');
       const playBtn = ctl.querySelector('[data-act="play"]');
-      const picker = this.root.querySelector('.dgm-scenarios');
+      const picker = list.length > 1 ? this.menu('scn', 'Use cases') : null;
+      if (picker) picker.setAttribute('role', 'tablist');
       const modeLabel = ctl.querySelector('.dgm-toggle-mode');
       const modeBox = modeLabel && modeLabel.querySelector('input');
       const lockBtn = ctl.querySelector('[data-act="lock"]');
@@ -2575,7 +2680,34 @@
       const setPlayIcon = () => {
         playBtn.innerHTML = `<i class="fas fa-${this.playing ? 'pause' : 'play'}" aria-hidden="true"></i>`;
         playBtn.setAttribute('aria-label', this.playing ? 'Pause' : 'Play');
+        const st = handle && handle.querySelector('.dgm-player-state');
+        if (st) st.className = `fas fa-${this.playing ? 'pause' : 'play'} dgm-player-state`;
       };
+      // The player drawer: closed by default, opens while the pointer is on its tab or its controls (or
+      // on a click, for touch, or keyboard focus), closes shortly after the pointer leaves and whenever a
+      // use case starts playing.
+      this.openPlayer = (on) => {
+        if (!player) return;
+        clearTimeout(this.playerTimer);
+        player.classList.toggle('is-open', on);
+        handle.setAttribute('aria-expanded', on ? 'true' : 'false');
+        handle.setAttribute('aria-label', on ? 'Hide the player' : 'Show the player');
+      };
+      if (player) {
+        player.addEventListener('pointerenter', (ev) => ev.pointerType === 'mouse' && this.openPlayer(true));
+        player.addEventListener('pointerleave', (ev) => {
+          if (ev.pointerType !== 'mouse' || player.querySelector(':focus-visible')) return;
+          clearTimeout(this.playerTimer);
+          this.playerTimer = setTimeout(() => this.openPlayer(false), 450);
+        });
+        player.addEventListener('focusin', () => player.querySelector(':focus-visible') && this.openPlayer(true));
+        player.addEventListener('focusout', (ev) => {
+          if (!player.contains(ev.relatedTarget) && !player.matches(':hover')) this.openPlayer(false);
+        });
+        handle.addEventListener('click', () => this.openPlayer(!player.classList.contains('is-open')));
+        // Clicks and drags on the player are not pans or clicks on the canvas.
+        for (const t of ['pointerdown', 'click', 'wheel', 'dblclick']) player.addEventListener(t, (ev) => ev.stopPropagation());
+      }
       // A step moves packets in "groups": its `edges` all at once (fan-out / fan-in), then each hop of
       // its `path` one after another. `~id` in a path travels that arrow backwards (a response).
       const leg = (ref) => {
@@ -2593,37 +2725,21 @@
       };
       const buildSteps = () => {
         this.steps = this.scn.steps.filter((x) => !x.when || x.when === this.mode).map((x) => ({ ...x, edges: x.edges || [], groups: groupsOf(x) }));
-        dots.textContent = '';
-        this.steps.forEach((x, i) => {
-          const b = html('button', 'dgm-dot', dots);
-          b.type = 'button';
-          b.setAttribute('aria-label', `Step ${i + 1}: ${x.title}`);
-          b.addEventListener('click', () => {
-            this.stop();
-            this.showStep(i, true);
-          });
-        });
       };
+      // Step n/N in the player and on its tab; before the first step, the card introduces the use case.
       this.setCaption = (i) => {
-        if (i < 0) {
-          capEl.querySelector('.dgm-counter').textContent = list.length > 1 ? 'Use case' : 'Tour';
-          capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
-          capEl.querySelector('.dgm-step-text').textContent = `${this.scn.summary ? this.scn.summary + ' ' : ''}Press play, or step through with the arrows.`;
-        } else {
-          capEl.querySelector('.dgm-counter').textContent = `${i + 1}/${this.steps.length}`;
-          capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
-          capEl.querySelector('.dgm-step-text').textContent = this.scn.summary || '';
-          this.setCard(i);
-        }
-        [...dots.children].forEach((d, j) => {
-          d.classList.toggle('is-done', j < i);
-          d.classList.toggle('is-current', j === i);
-        });
+        const n = i < 0 ? '' : `${i + 1}/${this.steps.length}`;
+        if (stepN) stepN.textContent = n || `${this.steps.length} steps`;
+        const hn = handle && handle.querySelector('.dgm-player-n');
+        if (hn) hn.textContent = n || 'Play';
+        if (i < 0) this.setIntro();
+        else this.setCard(i);
       };
-      // Step card at the bottom of the canvas: the step's number and title, the banner line (what the
-      // step is doing, then its outcome) and its description: `text`, or `detail` while Details is on.
+      // Step card at the bottom of the canvas, the one place for the description: the step's number and
+      // title with the use case's name, the banner line (what the step is doing, then its outcome) and its
+      // description: `text`, or `detail` while Details is on (the card grows a little for it).
       const banner = this.root.querySelector('.dgm-banner');
-      if (banner) banner.innerHTML = '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-title"></span></div><div class="dgm-banner-line"></div><div class="dgm-banner-text"></div>';
+      if (banner) banner.innerHTML = '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-title"></span><span class="dgm-banner-scn"></span></div><div class="dgm-banner-line"></div><div class="dgm-banner-text"></div>';
       const part = (c) => banner && banner.querySelector(`.dgm-banner-${c}`);
       this.setCard = (i) => {
         const x = this.steps[i];
@@ -2631,28 +2747,31 @@
         const long = this.details && x.detail;
         part('n').textContent = `${i + 1}/${this.steps.length}`;
         part('title').textContent = x.title || '';
+        part('scn').textContent = list.length > 1 ? this.scn.title || '' : '';
         // A blank line in `detail` starts a new paragraph; `- ` lines are a list.
         part('text').innerHTML = String(long ? x.detail : x.text || '').split(/\n\s*\n/).map((t) => markdown(t)).join('');
         part('text').scrollTop = 0;
         banner.classList.toggle('is-detailed', !!long);
       };
-      // With Details on, the card leaves the canvas and sits under it at the figure's full width, so a long
-      // description is easy to read and covers no component; with Details off it floats at the canvas bottom.
-      const body = this.root.querySelector('.dgm-body');
-      const placeCard = () => {
-        if (!banner || !body) return;
-        const below = !!this.details;
-        if (below && banner.previousElementSibling !== body) body.after(banner);
-        if (!below && banner.parentNode !== this.stage) this.stage.appendChild(banner);
-        banner.classList.toggle('is-below', below);
+      // Before the first step: the use case's name and summary, and how to start it.
+      this.setIntro = () => {
+        this.stepRunning = null;
+        if (!banner) return;
+        part('n').textContent = list.length > 1 ? 'Use case' : 'Tour';
+        part('title').textContent = this.scn.title || 'Guided tour';
+        part('scn').textContent = '';
+        part('line').textContent = '';
+        part('text').innerHTML = markdown(`${this.scn.summary ? this.scn.summary + ' ' : ''}Open the player at the top of the canvas to play, or step through.`);
+        banner.classList.remove('is-run', 'is-success', 'is-fail', 'is-done', 'is-detailed');
+        banner.classList.add('is-on', 'is-intro');
       };
-      placeCard();
       this.setBanner = (text, state = 'run') => {
         if (!banner) return;
         if (!text) {
-          banner.classList.remove('is-on');
+          if (this.stepRunning == null) this.setIntro();
           return;
         }
+        banner.classList.remove('is-intro');
         const icon = { success: '✓ ', fail: '✗ ', done: '● ' }[state] || '';
         part('line').textContent = icon + text;
         banner.classList.remove('is-run', 'is-success', 'is-fail', 'is-done');
@@ -2961,6 +3080,8 @@
         if (this.playing) return;
         this.playing = true;
         setPlayIcon();
+        // Fold the drawer away (the pointer may still be on it: it opens again when it moves back).
+        this.openPlayer(false);
         if (this.k >= this.steps.length - 1) this.k = -1;
         while (this.playing) {
           const r = await this.showStep(this.k + 1, true);
@@ -3081,8 +3202,7 @@
         try {
           localStorage.setItem(detailKey, this.details ? '1' : '0');
         } catch (e) { /* storage blocked: the choice lasts for this page only */ }
-        placeCard();
-        if (banner && banner.classList.contains('is-on') && this.stepRunning != null) this.setCard(this.stepRunning);
+        if (banner && banner.classList.contains('is-on') && !banner.classList.contains('is-intro') && this.stepRunning != null) this.setCard(this.stepRunning);
       });
       modeBox?.addEventListener('change', () => {
         this.stop();
@@ -3091,8 +3211,9 @@
         this.relayout({}).then(() => this.showStep(-1));
       });
       this.selectScenario(0);
-      capEl.hidden = false;
-      ctl.hidden = false;
+      capEl.hidden = true;
+      if (player) player.hidden = false;
+      this.root.classList.add('has-player');
     }
   }
 

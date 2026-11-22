@@ -92,18 +92,28 @@ def fallback(data):
 def figure(data, name):
     has_story = bool(data.get("scenarios") or (data.get("tour") or {}).get("steps"))
     title = e(data["title"])
-    story_nav = ('<nav class="dgm-scenarios" role="tablist" aria-label="Use cases" hidden>'
-                 '<span class="dgm-scenarios-head">Use cases</span></nav>') if has_story else ""
-    controls = """<div class="dgm-controls" hidden>
+    # The sidebar: Levels, Views and Use cases as collapsible menus (the engine fills them), the zoom,
+    # Fit and fullscreen buttons pinned at its foot, and a toggle that folds the whole sidebar.
+    side = ('<nav class="dgm-side" aria-label="Diagram controls">'
+            '<div class="dgm-side-head"><span>Explore</span>'
+            '<button type="button" class="dgm-collapse" data-act="side-collapse" aria-expanded="true" '
+            'aria-label="Hide the sidebar" title="Hide the sidebar"><i class="fas fa-angles-left" aria-hidden="true"></i>'
+            '</button></div><div class="dgm-side-menus"></div><div class="dgm-side-foot"></div></nav>')
+    # The player: a tab hanging from the top edge of the canvas (play state and step n/N); hovering or
+    # clicking it drops the controls down. It closes again when a use case starts playing.
+    controls = """<div class="dgm-player" hidden>
+<button type="button" class="dgm-player-handle" aria-expanded="false" aria-label="Show the player" title="Player: play, step, speed, lock, Details"><i class="fas fa-play dgm-player-state" aria-hidden="true"></i><span class="dgm-player-n">Play</span><i class="fas fa-chevron-down dgm-player-chev" aria-hidden="true"></i></button>
+<div class="dgm-controls">
 <button type="button" class="dgm-btn dgm-btn-primary" data-act="play" aria-label="Play"><i class="fas fa-play" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="prev" aria-label="Previous step"><i class="fas fa-backward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="next" aria-label="Next step"><i class="fas fa-forward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="restart" aria-label="Restart"><i class="fas fa-rotate-left" aria-hidden="true"></i></button>
+<span class="dgm-step-n" aria-live="polite"></span>
 <button type="button" class="dgm-btn" data-act="speed" aria-label="Speed">1&times;</button>
 <button type="button" class="dgm-btn dgm-btn-lock" data-act="lock" aria-pressed="false" aria-label="Lock layout"><i class="fas fa-lock-open" aria-hidden="true"></i></button>
-<div class="dgm-dots" role="group" aria-label="Steps"></div>
 <label class="dgm-toggle-mode" hidden><input type="checkbox" data-act="mode"> <span></span></label>
 <label class="dgm-toggle-details" hidden title="Show each step's longer description"><input type="checkbox" data-act="details"> <span>Details</span></label>
+</div>
 </div>""" if has_story else ""
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
     map_data = ""
@@ -112,9 +122,8 @@ def figure(data, name):
         map_data = f'<script type="application/json" class="dgm-map-data">{json.dumps(land)}</script>'
     accent, accent2 = data.get("accent", "#38BDF8"), data.get("accent2", "#8B5CF6")
     return f"""<figure class="dgm" id="dgm-{e(name)}" data-icon-base="" style="--dgm-accent: {e(accent)}; --dgm-accent2: {e(accent2)};">
-<div class="dgm-toolbar"></div>
 <div class="dgm-body">
-{story_nav}
+{side}
 <div class="dgm-stage" tabindex="0" aria-label="{title}: interactive diagram. Drag to pan, Control plus scroll or pinch to zoom, arrow keys to move.">
 <svg class="dgm-svg" role="img" aria-label="{title}"></svg>
 <div class="dgm-hint" aria-hidden="true">Ctrl + scroll (or pinch) to zoom</div>
@@ -122,11 +131,11 @@ def figure(data, name):
 <aside class="dgm-panel" hidden><button type="button" class="dgm-panel-close" aria-label="Close details"><i class="fas fa-xmark" aria-hidden="true"></i></button><div class="dgm-panel-body"></div></aside>
 <p class="dgm-loading">Laying out the diagram…</p>
 <div class="dgm-banner" role="status" aria-live="polite"></div>
+{controls}
 </div>
 </div>
 <div class="dgm-legend"></div>
 <figcaption class="dgm-caption" aria-live="polite" hidden><span class="dgm-counter"></span> <strong class="dgm-step-title"></strong> <span class="dgm-step-text"></span></figcaption>
-{controls}
 <div class="dgm-fallback">
 {fallback(data)}
 </div>

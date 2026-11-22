@@ -70,7 +70,7 @@ grpc, kafka, amqp, mqtt, webhook, oauth, ssh, wireguard, kerberos, stream, query
 
 Logs to a collector, audit trails, metrics scrapes, secret fetches, DNS lookups and image pulls connect
 almost everything to everything; drawn all the time they bury the main flows. Put them in **views**:
-tabs at the top of the canvas (`Main flows`, one tab per view, then a built-in `Show all`).
+the **Views** menu in the sidebar (`Main flows`, one entry per view, then a built-in `Show all`).
 
 ```yaml
 views:

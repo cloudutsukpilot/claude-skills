@@ -62,21 +62,6 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   color: inherit;
 }
 
-.dgm-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.5rem;
-}
-
-.dgm-levels {
-  display: flex;
-  flex: 1 1 18rem;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-}
-
 .dgm-lvl {
   display: inline-flex;
   flex-direction: column;
@@ -137,6 +122,20 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
 }
 .dgm-btn:hover, .dgm-btn:focus-visible {
   border-color: var(--dgm-accent);
+}
+
+.dgm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.dgm-btn:disabled:hover {
+  border-color: var(--dgm-border);
+}
+
+.dgm-btn-zoomlock[aria-pressed=true] {
+  border-color: var(--dgm-accent);
+  background: color-mix(in srgb, var(--dgm-accent) 16%, var(--dgm-host-bg));
+  color: var(--dgm-ink);
 }
 
 .dgm-btn-primary {
@@ -1021,25 +1020,105 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   min-width: 0;
 }
 
-.dgm-scenarios {
+.dgm-side {
   display: flex;
-  flex: 0 0 11.5rem;
+  flex: 0 0 12.5rem;
   flex-direction: column;
   gap: 0.3rem;
+  min-width: 0;
   max-height: clamp(420px, 64vh, 700px);
-  overflow: auto;
-}
-.dgm-scenarios[hidden] {
-  display: none;
 }
 
-.dgm-scenarios-head {
-  padding: 0.1rem 0.2rem 0.2rem;
+.dgm-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0 0.1rem 0 0.2rem;
   color: var(--dgm-muted);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.dgm-side-menus {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.1rem;
+}
+
+.dgm-side-foot {
+  display: flex;
+  flex: none;
+  gap: 0.3rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--dgm-border);
+}
+.dgm-side-foot .dgm-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.dgm-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.dgm-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.25rem 0.35rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: none;
+  color: var(--dgm-ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.dgm-menu-head .dgm-menu-meta {
+  margin-left: auto;
+  color: var(--dgm-muted);
+  font-weight: 400;
+}
+.dgm-menu-head i {
+  color: var(--dgm-muted);
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+.dgm-menu-head:hover, .dgm-menu-head:focus-visible {
+  background: var(--dgm-soft);
+}
+
+.dgm-menu.is-closed .dgm-menu-items {
+  display: none;
+}
+.dgm-menu.is-closed .dgm-menu-head i {
+  transform: rotate(-90deg);
+}
+
+.dgm-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.dgm-menu-items[hidden] {
+  display: none;
+}
+
+.dgm-menu-levels .dgm-lvl {
+  width: 100%;
 }
 
 .dgm-scn {
@@ -1063,6 +1142,52 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   background: color-mix(in srgb, var(--dgm-accent) 16%, var(--dgm-host-bg));
 }
 
+.dgm-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--dgm-border);
+  border-radius: 0.4rem;
+  background: var(--dgm-host-bg);
+  color: var(--dgm-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.dgm-collapse:hover, .dgm-collapse:focus-visible {
+  border-color: var(--dgm-accent);
+  color: var(--dgm-ink);
+}
+
+.dgm.is-side-collapsed .dgm-side {
+  flex-basis: 2.2rem;
+}
+.dgm.is-side-collapsed .dgm-side-head {
+  justify-content: center;
+  padding: 0;
+}
+.dgm.is-side-collapsed .dgm-side-head span {
+  display: none;
+}
+.dgm.is-side-collapsed .dgm-side-menus {
+  display: none;
+}
+.dgm.is-side-collapsed .dgm-side-foot {
+  flex-direction: column;
+  margin-top: auto;
+}
+.dgm.is-side-collapsed .dgm-side-foot .dgm-btn {
+  flex: none;
+  width: 2.2rem;
+  height: 2rem;
+  padding: 0;
+}
+.dgm.is-side-collapsed .dgm-collapse[data-act=side-collapse] i {
+  transform: rotate(180deg);
+}
+
 .dgm-scn-title {
   font-size: 0.84rem;
   font-weight: 600;
@@ -1077,52 +1202,50 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   .dgm-body {
     flex-direction: column;
   }
-  .dgm-scenarios {
+  .dgm-side {
     flex: none;
-    flex-direction: row;
     max-height: none;
-    overflow-x: auto;
-    padding-bottom: 0.2rem;
   }
-  .dgm-scenarios-head {
-    display: none;
+  .dgm-side-menus {
+    overflow: visible;
   }
-  .dgm-scn {
-    flex: 0 0 auto;
+  .dgm-menu-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .dgm-menu-levels .dgm-lvl {
+    width: auto;
+  }
+  .dgm-collapse[data-act=side-collapse] i {
+    transform: rotate(90deg);
+  }
+  .dgm.is-side-collapsed .dgm-side {
+    flex-basis: auto;
+  }
+  .dgm.is-side-collapsed .dgm-side-head {
+    justify-content: space-between;
+  }
+  .dgm.is-side-collapsed .dgm-side-foot {
+    flex-direction: row;
+  }
+  .dgm.is-side-collapsed .dgm-side-foot .dgm-btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+  .dgm.is-side-collapsed .dgm-collapse[data-act=side-collapse] i {
+    transform: rotate(-90deg);
   }
 }
-.dgm-views {
-  position: absolute;
-  top: 0.6rem;
-  left: 50%;
-  z-index: 4;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.15rem;
-  width: max-content;
-  max-width: calc(100% - 1rem);
-  padding: 0.18rem;
-  border: 1px solid var(--dgm-border);
-  border-radius: 0.7rem;
-  background: color-mix(in srgb, var(--dgm-host-bg) 92%, transparent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-.dgm-views .dgm-vtab {
-  pointer-events: auto;
-}
-
 .dgm-vtab {
-  display: inline-flex;
+  display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.5rem;
-  border: 0;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--dgm-border);
   border-radius: 0.5rem;
-  background: none;
+  background: var(--dgm-host-bg);
+  text-align: left;
   color: var(--dgm-text);
   font-size: 0.76rem;
   font-weight: 600;
@@ -1147,6 +1270,7 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
 }
 
 .dgm-vtab-n {
+  margin-left: auto;
   min-width: 1.2rem;
   padding: 0 0.3rem;
   border-radius: 0.6rem;
@@ -1222,6 +1346,16 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
 .dgm-banner .dgm-banner-title {
   color: var(--dgm-ink);
 }
+.dgm-banner .dgm-banner-scn {
+  overflow: hidden;
+  margin-left: auto;
+  max-width: 50%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dgm-banner .dgm-banner-scn:empty {
+  display: none;
+}
 .dgm-banner .dgm-banner-line {
   margin-top: 0.1rem;
   color: var(--dgm-ink);
@@ -1250,8 +1384,14 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
 .dgm-banner .dgm-banner-text code {
   font-size: 0.82em;
 }
+.dgm-banner.is-detailed {
+  width: min(48rem, 100% - 2rem);
+}
 .dgm-banner.is-detailed .dgm-banner-text {
-  max-height: min(15em, 38vh);
+  max-height: min(13em, 34vh);
+}
+.dgm-banner.is-intro {
+  border-left-color: var(--dgm-accent);
 }
 .dgm-banner.is-success {
   border-left-color: #16a34a;
@@ -1273,130 +1413,99 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   left: calc((100% - min(360px, 92%)) / 2);
 }
 
-.dgm .dgm-banner.is-below {
-  position: static;
-  width: auto;
-  margin-top: 0.5rem;
-  box-shadow: none;
-  font-size: 0.9rem;
-  transform: none;
-  transition: border-color 0.25s ease;
+.dgm-player {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
-.dgm .dgm-banner.is-below:not(.is-on) {
+.dgm-player[hidden] {
   display: none;
 }
-.dgm .dgm-banner.is-below .dgm-banner-head {
-  font-size: 0.8rem;
-}
-.dgm .dgm-banner.is-below .dgm-banner-text {
-  max-height: none;
-  overflow: visible;
-}
-.dgm .dgm-banner.is-below .dgm-banner-text p {
-  margin-bottom: 0.45rem;
-}
 
-.dgm-pointer.is-back .dgm-halo {
-  fill: #22c55e;
+.dgm-player-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8.5rem;
+  height: 1.45rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--dgm-border);
+  border-top: 0;
+  border-radius: 0 0 0.6rem 0.6rem;
+  background: color-mix(in srgb, var(--dgm-host-bg) 92%, transparent);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  color: var(--dgm-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
 }
-.dgm-pointer.is-back .dgm-head {
-  fill: #22c55e;
-}
-
-.dgm-burst-ring {
-  fill: none;
-  stroke-width: 3;
-}
-
-.dgm-burst-mark {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.dgm-node.is-winning .dgm-disc {
-  animation: dgm-win 0.7s ease-out 2;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.dgm-node.is-failing {
-  animation: dgm-shake 0.45s ease-in-out 2;
-}
-
-.dgm-node.is-pulsing .dgm-disc,
-.dgm-group.is-pulsing .dgm-frame {
-  animation: dgm-pulse 0.9s ease-in-out infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-@keyframes dgm-pulse {
-  50% {
-    stroke: var(--dgm-accent2);
-    stroke-width: 4;
-    filter: drop-shadow(0 0 6px var(--dgm-accent2));
-  }
-}
-.dgm-btn-lock[aria-pressed=true] {
-  border-color: var(--dgm-accent);
-  background: color-mix(in srgb, var(--dgm-accent) 16%, var(--dgm-host-bg));
+.dgm-player-handle .dgm-player-state {
   color: var(--dgm-accent);
 }
-
-@keyframes dgm-win {
-  50% {
-    transform: scale(1.18);
-    stroke-width: 4;
-  }
+.dgm-player-handle .dgm-player-n {
+  color: var(--dgm-ink);
+  font-variant-numeric: tabular-nums;
 }
-@keyframes dgm-shake {
-  20%, 60% {
-    translate: -4px 0;
-  }
-  40%, 80% {
-    translate: 4px 0;
-  }
+.dgm-player-handle .dgm-player-chev {
+  transition: transform 0.2s ease;
 }
-.dgm-toggle-mode[hidden],
-.dgm-toggle-details[hidden] {
-  display: none;
+.dgm-player-handle:hover, .dgm-player-handle:focus-visible {
+  border-color: var(--dgm-accent);
 }
 
 .dgm-controls {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-.dgm-controls[hidden] {
-  display: none;
+  gap: 0.4rem;
+  max-width: min(44rem, 100vw - 2rem);
+  margin-top: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--dgm-border);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--dgm-host-bg) 96%, transparent);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.5rem);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  visibility: hidden;
 }
 
-.dgm-dots {
-  display: flex;
-  flex: 1 1 8rem;
-  gap: 0.25rem;
+.dgm-player.is-open .dgm-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  visibility: visible;
+}
+.dgm-player.is-open .dgm-player-chev {
+  transform: rotate(180deg);
 }
 
-.dgm-dot {
-  flex: 1;
-  height: 1rem;
-  padding: 0.3rem 0;
-  border: 0;
+.dgm-step-n {
+  min-width: 4.2rem;
+  padding: 0.1rem 0.5rem;
   border-radius: 1rem;
-  background: var(--dgm-border);
-  background-clip: content-box;
-  cursor: pointer;
+  background: color-mix(in srgb, var(--dgm-accent) 16%, var(--dgm-host-bg));
+  color: var(--dgm-ink);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
 }
-.dgm-dot.is-done {
-  background-color: color-mix(in srgb, var(--dgm-accent) 55%, transparent);
-}
-.dgm-dot.is-current {
-  background-color: var(--dgm-accent);
+
+.dgm-toggle-mode[hidden],
+.dgm-toggle-details[hidden] {
+  display: none;
 }
 
 .dgm-toggle-mode,
@@ -1432,18 +1541,12 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   height: auto;
   min-height: 0;
 }
-.dgm.is-full .dgm-scenarios {
+.dgm.is-full .dgm-side {
   max-height: none;
 }
 .dgm.is-full .dgm-legend,
-.dgm.is-full .dgm-caption,
-.dgm.is-full .dgm-controls,
-.dgm.is-full .dgm-banner.is-below {
+.dgm.is-full .dgm-caption {
   flex: none;
-}
-.dgm.is-full .dgm-banner.is-below .dgm-banner-text {
-  max-height: 24vh;
-  overflow-y: auto;
 }
 
 body.dgm-full-open {
@@ -1659,9 +1762,8 @@ body.dgm-full-open {
 <h1>Example web shop</h1>
 <p class="page-lead">A fictional three-tier shop: CDN at the edge, a web app and API on Kubernetes, PostgreSQL and Redis behind them, a card payment provider and an email service outside.</p>
 <figure class="dgm" id="dgm-web-shop" data-icon-base="" style="--dgm-accent: #38BDF8; --dgm-accent2: #8B5CF6;">
-<div class="dgm-toolbar"></div>
 <div class="dgm-body">
-<nav class="dgm-scenarios" role="tablist" aria-label="Use cases" hidden><span class="dgm-scenarios-head">Use cases</span></nav>
+<nav class="dgm-side" aria-label="Diagram controls"><div class="dgm-side-head"><span>Explore</span><button type="button" class="dgm-collapse" data-act="side-collapse" aria-expanded="true" aria-label="Hide the sidebar" title="Hide the sidebar"><i class="fas fa-angles-left" aria-hidden="true"></i></button></div><div class="dgm-side-menus"></div><div class="dgm-side-foot"></div></nav>
 <div class="dgm-stage" tabindex="0" aria-label="Example web shop: interactive diagram. Drag to pan, Control plus scroll or pinch to zoom, arrow keys to move.">
 <svg class="dgm-svg" role="img" aria-label="Example web shop"></svg>
 <div class="dgm-hint" aria-hidden="true">Ctrl + scroll (or pinch) to zoom</div>
@@ -1669,21 +1771,24 @@ body.dgm-full-open {
 <aside class="dgm-panel" hidden><button type="button" class="dgm-panel-close" aria-label="Close details"><i class="fas fa-xmark" aria-hidden="true"></i></button><div class="dgm-panel-body"></div></aside>
 <p class="dgm-loading">Laying out the diagram…</p>
 <div class="dgm-banner" role="status" aria-live="polite"></div>
-</div>
-</div>
-<div class="dgm-legend"></div>
-<figcaption class="dgm-caption" aria-live="polite" hidden><span class="dgm-counter"></span> <strong class="dgm-step-title"></strong> <span class="dgm-step-text"></span></figcaption>
-<div class="dgm-controls" hidden>
+<div class="dgm-player" hidden>
+<button type="button" class="dgm-player-handle" aria-expanded="false" aria-label="Show the player" title="Player: play, step, speed, lock, Details"><i class="fas fa-play dgm-player-state" aria-hidden="true"></i><span class="dgm-player-n">Play</span><i class="fas fa-chevron-down dgm-player-chev" aria-hidden="true"></i></button>
+<div class="dgm-controls">
 <button type="button" class="dgm-btn dgm-btn-primary" data-act="play" aria-label="Play"><i class="fas fa-play" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="prev" aria-label="Previous step"><i class="fas fa-backward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="next" aria-label="Next step"><i class="fas fa-forward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="restart" aria-label="Restart"><i class="fas fa-rotate-left" aria-hidden="true"></i></button>
+<span class="dgm-step-n" aria-live="polite"></span>
 <button type="button" class="dgm-btn" data-act="speed" aria-label="Speed">1&times;</button>
 <button type="button" class="dgm-btn dgm-btn-lock" data-act="lock" aria-pressed="false" aria-label="Lock layout"><i class="fas fa-lock-open" aria-hidden="true"></i></button>
-<div class="dgm-dots" role="group" aria-label="Steps"></div>
 <label class="dgm-toggle-mode" hidden><input type="checkbox" data-act="mode"> <span></span></label>
 <label class="dgm-toggle-details" hidden title="Show each step's longer description"><input type="checkbox" data-act="details"> <span>Details</span></label>
 </div>
+</div>
+</div>
+</div>
+<div class="dgm-legend"></div>
+<figcaption class="dgm-caption" aria-live="polite" hidden><span class="dgm-counter"></span> <strong class="dgm-step-title"></strong> <span class="dgm-step-text"></span></figcaption>
 <div class="dgm-fallback">
 <p><strong>Example web shop</strong></p>
 <ul>
@@ -2444,7 +2549,11 @@ body.dgm-full-open {
       this.buildModel();
       this.buildChrome();
       this.clearUrlState();
-      this.relayout({ fit: true, animate: false }).then(() => root.classList.add('is-ready'));
+      this.relayout({ fit: true, animate: false }).then(() => {
+        root.classList.add('is-ready');
+        // `zoom_lock: true` locks the zoom the diagram opened at (after the first fit, not before it).
+        if (this.data.zoom_lock === true) this.setZoomLock(true);
+      });
     }
 
     // ---------------------------------------------------------------- model
@@ -2537,12 +2646,11 @@ body.dgm-full-open {
       make('feMergeNode', { in: 'b' }, merge);
       make('feMergeNode', { in: 'SourceGraphic' }, merge);
 
-      // Toolbar: one button per level (clicking steps there layer by layer), zoom, fit, fullscreen.
-      const bar = r.querySelector('.dgm-toolbar');
+      // Sidebar: Levels (one button per level; clicking steps there layer by layer), then Views and Use
+      // cases (buildViews, buildTour), each a collapsible menu; zoom, Fit and fullscreen at its foot.
+      const bar = r.querySelector('.dgm-side-foot');
       const names = this.data.levels || [];
-      const lv = html('div', 'dgm-levels', bar);
-      lv.setAttribute('role', 'group');
-      lv.setAttribute('aria-label', 'Detail level');
+      const lv = this.menu('levels', 'Levels', 'Detail level');
       this.levelBtns = [];
       for (let i = 0; i <= this.maxLevel; i++) {
         const b = html('button', 'dgm-lvl', lv);
@@ -2562,16 +2670,21 @@ body.dgm-full-open {
         b.innerHTML = `<i class="fas fa-${icon}" aria-hidden="true"></i>`;
         return b;
       };
-      btn('zoom-in', 'plus', 'Zoom in');
-      btn('zoom-out', 'minus', 'Zoom out');
+      // Zoom lock: holds the current zoom. Buttons, Ctrl + scroll, pinch and +/- stop zooming, and the
+      // camera moves of levels, Fit and use cases only pan. Dragging still moves around.
+      this.zoomLockBtn = btn('zoom-lock', 'lock-open', 'Lock zoom');
+      this.zoomLockBtn.classList.add('dgm-btn-zoomlock');
+      this.zoomBtns = [btn('zoom-in', 'plus', 'Zoom in'), btn('zoom-out', 'minus', 'Zoom out')];
+      this.setZoomLock(false);
       btn('fit', 'expand', 'Fit to view');
       btn('full', 'up-right-and-down-left-from-center', 'Fullscreen');
       bar.addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-act]');
         if (!b) return;
         const a = b.dataset.act;
-        if (a === 'zoom-in') this.zoomBy(1.25);
-        if (a === 'zoom-out') this.zoomBy(0.8);
+        if (a === 'zoom-lock') this.setZoomLock(!this.zoomLocked);
+        if (a === 'zoom-in') this.userZoom(1.25);
+        if (a === 'zoom-out') this.userZoom(0.8);
         if (a === 'fit') this.fit(true);
         if (a === 'full') this.toggleFull();
       });
@@ -2597,6 +2710,65 @@ body.dgm-full-open {
       this.bindFullscreen();
       this.buildViews();
       this.buildTour();
+      this.bindSideToggle();
+    }
+
+    // The sidebar folds to a narrow strip that keeps only the zoom, Fit and fullscreen buttons; the
+    // canvas takes the room and keeps its centre, and the choice is remembered in this browser.
+    bindSideToggle() {
+      const b = this.root.querySelector('[data-act="side-collapse"]');
+      if (!b) return;
+      const storeKey = `dgm-side-collapsed:${this.root.id}`;
+      const set = (on, save) => {
+        const W = this.stage.clientWidth;
+        const H = this.stage.clientHeight;
+        this.root.classList.toggle('is-side-collapsed', on);
+        const label = on ? 'Show the sidebar' : 'Hide the sidebar';
+        b.setAttribute('aria-expanded', on ? 'false' : 'true');
+        b.setAttribute('aria-label', label);
+        b.title = label;
+        const dw = this.stage.clientWidth - W;
+        const dh = this.stage.clientHeight - H;
+        if (dw || dh) {
+          cancelAnimationFrame(this.camRaf);
+          this.cam = { ...this.cam, x: this.cam.x + dw / 2, y: this.cam.y + dh / 2 };
+          this.applyCam();
+        }
+        if (save) try { localStorage.setItem(storeKey, on ? '1' : '0'); } catch (e) { /* storage blocked: lasts for this page only */ }
+      };
+      let saved = null;
+      try {
+        saved = localStorage.getItem(storeKey);
+      } catch (e) { /* storage blocked */ }
+      set(saved === '1', false);
+      b.addEventListener('click', () => set(!this.root.classList.contains('is-side-collapsed'), true));
+    }
+
+    // A collapsible menu in the sidebar: its head toggles the items, and the reader's choice is
+    // remembered per diagram in this browser. Returns the element that holds the items.
+    menu(id, title, label) {
+      const menus = this.root.querySelector('.dgm-side-menus');
+      const sec = html('section', `dgm-menu dgm-menu-${id}`, menus);
+      const head = html('button', 'dgm-menu-head', sec);
+      head.type = 'button';
+      head.innerHTML = `<span>${esc(title)}</span><span class="dgm-menu-meta"></span><i class="fas fa-chevron-down" aria-hidden="true"></i>`;
+      const items = html('div', 'dgm-menu-items', sec);
+      items.setAttribute('aria-label', label || title);
+      items.id = `${this.root.id}-menu-${id}`;
+      head.setAttribute('aria-controls', items.id);
+      const key = `dgm-menu-${id}:${this.root.id}`;
+      const set = (open, save) => {
+        sec.classList.toggle('is-closed', !open);
+        head.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (save) try { localStorage.setItem(key, open ? '1' : '0'); } catch (e) { /* storage blocked: lasts for this page only */ }
+      };
+      let saved = null;
+      try {
+        saved = localStorage.getItem(key);
+      } catch (e) { /* storage blocked */ }
+      set(saved !== '0', false);
+      head.addEventListener('click', () => set(sec.classList.contains('is-closed'), true));
+      return items;
     }
 
     updateLevelLabel() {
@@ -2656,9 +2828,9 @@ body.dgm-full-open {
     // ---------------------------------------------------------------- view tabs
     buildViews() {
       if (!this.views.length) return;
-      const bar = html('div', 'dgm-views', this.stage);
+      const bar = this.menu('views', 'Views');
+      bar.classList.add('dgm-views');
       bar.setAttribute('role', 'tablist');
-      bar.setAttribute('aria-label', 'Views');
       const count = (id) => (id === ALL_VIEWS ? this.edges.length : this.edges.filter((e) => (id ? e.viewList.includes(id) : e.mainFlow)).length);
       // Main flows first, the diagram's views, then Show all (every view's arrows and components).
       [{ id: null, label: 'Main flows', icon: 'api' }, ...this.views, { id: ALL_VIEWS, label: 'Show all', icon: 'cluster' }].forEach((v) => {
@@ -3982,8 +4154,45 @@ body.dgm-full-open {
       this.view.setAttribute('transform', `translate(${this.cam.x},${this.cam.y}) scale(${this.cam.k})`);
       this.root.style.setProperty('--dgm-zoom', this.cam.k);
     }
+    // With the zoom locked, a camera move keeps the current zoom and centres on the point the move
+    // aimed at, so it only pans.
+    lockCam(to) {
+      if (!this.zoomLocked || Math.abs(to.k - this.cam.k) < 1e-6) return to;
+      const W = this.stage.clientWidth;
+      const H = this.stage.clientHeight;
+      const { k } = this.cam;
+      const wx = (W / 2 - to.x) / to.k;
+      const wy = (H / 2 - to.y) / to.k;
+      return { k, x: W / 2 - k * wx, y: H / 2 - k * wy };
+    }
+    setZoomLock(on) {
+      this.zoomLocked = on;
+      const b = this.zoomLockBtn;
+      if (b) {
+        b.innerHTML = `<i class="fas fa-${on ? 'lock' : 'lock-open'}" aria-hidden="true"></i>`;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const label = on ? 'Zoom locked: click to zoom in and out again' : 'Lock zoom at this level';
+        b.setAttribute('aria-label', label);
+        b.title = label;
+      }
+      for (const z of this.zoomBtns || []) z.disabled = on;
+      this.root.classList.toggle('is-zoom-locked', on);
+    }
+    // A zoom the reader asked for (buttons, wheel, pinch, keys): refused while the zoom is locked.
+    userZoom(f, cx, cy) {
+      if (this.zoomLocked) return this.flashHint('Zoom is locked: unlock it at the foot of the sidebar to zoom');
+      this.zoomBy(f, cx, cy);
+    }
+    flashHint(text) {
+      const hint = this.root.querySelector('.dgm-hint');
+      if (hint && text) hint.textContent = text;
+      this.root.classList.add('show-hint');
+      clearTimeout(this.hintTimer);
+      this.hintTimer = setTimeout(() => this.root.classList.remove('show-hint'), 1400);
+    }
     animateCam(to, animate = true) {
       cancelAnimationFrame(this.camRaf);
+      to = this.lockCam(to);
       if (!animate || reduceMotion) {
         this.cam = to;
         this.applyCam();
@@ -4019,8 +4228,8 @@ body.dgm-full-open {
       const W = this.stage.clientWidth;
       const H = this.stage.clientHeight;
       const pad = 28;
-      // Keep clear of the view tabs at the top (and the banner at the bottom).
-      const top = this.viewBar ? this.viewBar.offsetHeight + 16 : 0;
+      // Keep clear of the player's tab at the top of the canvas.
+      const top = this.root.classList.contains('has-player') ? 22 : 0;
       const k = Math.min(maxK, (W - 2 * pad) / Math.max(1, b.x1 - b.x0), (H - 2 * pad - top) / Math.max(1, b.y1 - b.y0));
       return { k, x: (W - k * (b.x1 + b.x0)) / 2, y: top + (H - top - k * (b.y1 + b.y0)) / 2 };
     }
@@ -4069,7 +4278,8 @@ body.dgm-full-open {
       const W = this.stage.clientWidth;
       const H = this.stage.clientHeight;
       const pad = 28;
-      const top = this.viewBar ? this.viewBar.offsetHeight + 16 : 0;
+      // Keep clear of the player's tab at the top of the canvas.
+      const top = this.root.classList.contains('has-player') ? 22 : 0;
       const { k } = this.cam;
       const [cx, cy] = p.c || [p.x + p.w / 2, p.y + p.h / 2];
       const [ox, oy] = was || [cx, cy];
@@ -4085,7 +4295,7 @@ body.dgm-full-open {
         (sy - top - pad) / Math.max(1, cy - p.y),
         (H - pad - sy) / Math.max(1, p.y + p.h - cy)
       );
-      const nk = fitK >= k - 1e-3 ? k : Math.max(0.2, fitK);
+      const nk = this.zoomLocked || fitK >= k - 1e-3 ? k : Math.max(0.2, fitK);
       const to = { k: nk, x: sx - nk * cx, y: sy - nk * cy };
       if (Math.abs(to.k - k) < 1e-3 && Math.abs(to.x - this.cam.x) < 0.5 && Math.abs(to.y - this.cam.y) < 0.5) return;
       this.animateCam(to, animate);
@@ -4138,7 +4348,7 @@ body.dgm-full-open {
           const [a, b] = [...pts.values()];
           const box = st.getBoundingClientRect();
           const d = Math.hypot(a.x - b.x, a.y - b.y);
-          this.zoomBy((pinch.k * d) / pinch.d / this.cam.k, (a.x + b.x) / 2 - box.left, (a.y + b.y) / 2 - box.top);
+          if (!this.zoomLocked) this.zoomBy((pinch.k * d) / pinch.d / this.cam.k, (a.x + b.x) / 2 - box.left, (a.y + b.y) / 2 - box.top);
           this.dragged = true;
           return;
         }
@@ -4163,15 +4373,12 @@ body.dgm-full-open {
       st.addEventListener(
         'wheel',
         (ev) => {
-          if (!(ev.ctrlKey || ev.metaKey || this.root.classList.contains('is-full'))) {
-            this.root.classList.add('show-hint');
-            clearTimeout(this.hintTimer);
-            this.hintTimer = setTimeout(() => this.root.classList.remove('show-hint'), 1200);
-            return;
-          }
+          const wantsZoom = ev.ctrlKey || ev.metaKey || this.root.classList.contains('is-full');
+          // Locked: a plain scroll still scrolls the page; a zoom gesture says the zoom is locked.
+          if (!wantsZoom) return this.flashHint(this.zoomLocked ? 'Zoom is locked' : 'Ctrl + scroll (or pinch) to zoom');
           ev.preventDefault();
           const box = st.getBoundingClientRect();
-          this.zoomBy(Math.exp(-ev.deltaY * 0.0022), ev.clientX - box.left, ev.clientY - box.top);
+          this.userZoom(Math.exp(-ev.deltaY * 0.0022), ev.clientX - box.left, ev.clientY - box.top);
         },
         { passive: false }
       );
@@ -4186,8 +4393,8 @@ body.dgm-full-open {
           ev.preventDefault();
           this.cam = { ...this.cam, x: this.cam.x + moves[ev.key][0], y: this.cam.y + moves[ev.key][1] };
           this.applyCam();
-        } else if (ev.key === '+' || ev.key === '=') this.zoomBy(1.2);
-        else if (ev.key === '-') this.zoomBy(1 / 1.2);
+        } else if (ev.key === '+' || ev.key === '=') this.userZoom(1.2);
+        else if (ev.key === '-') this.userZoom(1 / 1.2);
         else if (ev.key === '0') this.fit(true);
       });
       window.addEventListener('resize', () => {
@@ -4258,9 +4465,12 @@ body.dgm-full-open {
       this.playing = false;
       this.run = 0;
       this.locked = this.data.lock === true;
-      const dots = ctl.querySelector('.dgm-dots');
+      const player = this.root.querySelector('.dgm-player');
+      const handle = player && player.querySelector('.dgm-player-handle');
+      const stepN = ctl.querySelector('.dgm-step-n');
       const playBtn = ctl.querySelector('[data-act="play"]');
-      const picker = this.root.querySelector('.dgm-scenarios');
+      const picker = list.length > 1 ? this.menu('scn', 'Use cases') : null;
+      if (picker) picker.setAttribute('role', 'tablist');
       const modeLabel = ctl.querySelector('.dgm-toggle-mode');
       const modeBox = modeLabel && modeLabel.querySelector('input');
       const lockBtn = ctl.querySelector('[data-act="lock"]');
@@ -4291,7 +4501,34 @@ body.dgm-full-open {
       const setPlayIcon = () => {
         playBtn.innerHTML = `<i class="fas fa-${this.playing ? 'pause' : 'play'}" aria-hidden="true"></i>`;
         playBtn.setAttribute('aria-label', this.playing ? 'Pause' : 'Play');
+        const st = handle && handle.querySelector('.dgm-player-state');
+        if (st) st.className = `fas fa-${this.playing ? 'pause' : 'play'} dgm-player-state`;
       };
+      // The player drawer: closed by default, opens while the pointer is on its tab or its controls (or
+      // on a click, for touch, or keyboard focus), closes shortly after the pointer leaves and whenever a
+      // use case starts playing.
+      this.openPlayer = (on) => {
+        if (!player) return;
+        clearTimeout(this.playerTimer);
+        player.classList.toggle('is-open', on);
+        handle.setAttribute('aria-expanded', on ? 'true' : 'false');
+        handle.setAttribute('aria-label', on ? 'Hide the player' : 'Show the player');
+      };
+      if (player) {
+        player.addEventListener('pointerenter', (ev) => ev.pointerType === 'mouse' && this.openPlayer(true));
+        player.addEventListener('pointerleave', (ev) => {
+          if (ev.pointerType !== 'mouse' || player.querySelector(':focus-visible')) return;
+          clearTimeout(this.playerTimer);
+          this.playerTimer = setTimeout(() => this.openPlayer(false), 450);
+        });
+        player.addEventListener('focusin', () => player.querySelector(':focus-visible') && this.openPlayer(true));
+        player.addEventListener('focusout', (ev) => {
+          if (!player.contains(ev.relatedTarget) && !player.matches(':hover')) this.openPlayer(false);
+        });
+        handle.addEventListener('click', () => this.openPlayer(!player.classList.contains('is-open')));
+        // Clicks and drags on the player are not pans or clicks on the canvas.
+        for (const t of ['pointerdown', 'click', 'wheel', 'dblclick']) player.addEventListener(t, (ev) => ev.stopPropagation());
+      }
       // A step moves packets in "groups": its `edges` all at once (fan-out / fan-in), then each hop of
       // its `path` one after another. `~id` in a path travels that arrow backwards (a response).
       const leg = (ref) => {
@@ -4309,37 +4546,21 @@ body.dgm-full-open {
       };
       const buildSteps = () => {
         this.steps = this.scn.steps.filter((x) => !x.when || x.when === this.mode).map((x) => ({ ...x, edges: x.edges || [], groups: groupsOf(x) }));
-        dots.textContent = '';
-        this.steps.forEach((x, i) => {
-          const b = html('button', 'dgm-dot', dots);
-          b.type = 'button';
-          b.setAttribute('aria-label', `Step ${i + 1}: ${x.title}`);
-          b.addEventListener('click', () => {
-            this.stop();
-            this.showStep(i, true);
-          });
-        });
       };
+      // Step n/N in the player and on its tab; before the first step, the card introduces the use case.
       this.setCaption = (i) => {
-        if (i < 0) {
-          capEl.querySelector('.dgm-counter').textContent = list.length > 1 ? 'Use case' : 'Tour';
-          capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
-          capEl.querySelector('.dgm-step-text').textContent = `${this.scn.summary ? this.scn.summary + ' ' : ''}Press play, or step through with the arrows.`;
-        } else {
-          capEl.querySelector('.dgm-counter').textContent = `${i + 1}/${this.steps.length}`;
-          capEl.querySelector('.dgm-step-title').textContent = this.scn.title || 'Guided tour';
-          capEl.querySelector('.dgm-step-text').textContent = this.scn.summary || '';
-          this.setCard(i);
-        }
-        [...dots.children].forEach((d, j) => {
-          d.classList.toggle('is-done', j < i);
-          d.classList.toggle('is-current', j === i);
-        });
+        const n = i < 0 ? '' : `${i + 1}/${this.steps.length}`;
+        if (stepN) stepN.textContent = n || `${this.steps.length} steps`;
+        const hn = handle && handle.querySelector('.dgm-player-n');
+        if (hn) hn.textContent = n || 'Play';
+        if (i < 0) this.setIntro();
+        else this.setCard(i);
       };
-      // Step card at the bottom of the canvas: the step's number and title, the banner line (what the
-      // step is doing, then its outcome) and its description: `text`, or `detail` while Details is on.
+      // Step card at the bottom of the canvas, the one place for the description: the step's number and
+      // title with the use case's name, the banner line (what the step is doing, then its outcome) and its
+      // description: `text`, or `detail` while Details is on (the card grows a little for it).
       const banner = this.root.querySelector('.dgm-banner');
-      if (banner) banner.innerHTML = '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-title"></span></div><div class="dgm-banner-line"></div><div class="dgm-banner-text"></div>';
+      if (banner) banner.innerHTML = '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-title"></span><span class="dgm-banner-scn"></span></div><div class="dgm-banner-line"></div><div class="dgm-banner-text"></div>';
       const part = (c) => banner && banner.querySelector(`.dgm-banner-${c}`);
       this.setCard = (i) => {
         const x = this.steps[i];
@@ -4347,28 +4568,31 @@ body.dgm-full-open {
         const long = this.details && x.detail;
         part('n').textContent = `${i + 1}/${this.steps.length}`;
         part('title').textContent = x.title || '';
+        part('scn').textContent = list.length > 1 ? this.scn.title || '' : '';
         // A blank line in `detail` starts a new paragraph; `- ` lines are a list.
         part('text').innerHTML = String(long ? x.detail : x.text || '').split(/\n\s*\n/).map((t) => markdown(t)).join('');
         part('text').scrollTop = 0;
         banner.classList.toggle('is-detailed', !!long);
       };
-      // With Details on, the card leaves the canvas and sits under it at the figure's full width, so a long
-      // description is easy to read and covers no component; with Details off it floats at the canvas bottom.
-      const body = this.root.querySelector('.dgm-body');
-      const placeCard = () => {
-        if (!banner || !body) return;
-        const below = !!this.details;
-        if (below && banner.previousElementSibling !== body) body.after(banner);
-        if (!below && banner.parentNode !== this.stage) this.stage.appendChild(banner);
-        banner.classList.toggle('is-below', below);
+      // Before the first step: the use case's name and summary, and how to start it.
+      this.setIntro = () => {
+        this.stepRunning = null;
+        if (!banner) return;
+        part('n').textContent = list.length > 1 ? 'Use case' : 'Tour';
+        part('title').textContent = this.scn.title || 'Guided tour';
+        part('scn').textContent = '';
+        part('line').textContent = '';
+        part('text').innerHTML = markdown(`${this.scn.summary ? this.scn.summary + ' ' : ''}Open the player at the top of the canvas to play, or step through.`);
+        banner.classList.remove('is-run', 'is-success', 'is-fail', 'is-done', 'is-detailed');
+        banner.classList.add('is-on', 'is-intro');
       };
-      placeCard();
       this.setBanner = (text, state = 'run') => {
         if (!banner) return;
         if (!text) {
-          banner.classList.remove('is-on');
+          if (this.stepRunning == null) this.setIntro();
           return;
         }
+        banner.classList.remove('is-intro');
         const icon = { success: '✓ ', fail: '✗ ', done: '● ' }[state] || '';
         part('line').textContent = icon + text;
         banner.classList.remove('is-run', 'is-success', 'is-fail', 'is-done');
@@ -4677,6 +4901,8 @@ body.dgm-full-open {
         if (this.playing) return;
         this.playing = true;
         setPlayIcon();
+        // Fold the drawer away (the pointer may still be on it: it opens again when it moves back).
+        this.openPlayer(false);
         if (this.k >= this.steps.length - 1) this.k = -1;
         while (this.playing) {
           const r = await this.showStep(this.k + 1, true);
@@ -4797,8 +5023,7 @@ body.dgm-full-open {
         try {
           localStorage.setItem(detailKey, this.details ? '1' : '0');
         } catch (e) { /* storage blocked: the choice lasts for this page only */ }
-        placeCard();
-        if (banner && banner.classList.contains('is-on') && this.stepRunning != null) this.setCard(this.stepRunning);
+        if (banner && banner.classList.contains('is-on') && !banner.classList.contains('is-intro') && this.stepRunning != null) this.setCard(this.stepRunning);
       });
       modeBox?.addEventListener('change', () => {
         this.stop();
@@ -4807,8 +5032,9 @@ body.dgm-full-open {
         this.relayout({}).then(() => this.showStep(-1));
       });
       this.selectScenario(0);
-      capEl.hidden = false;
-      ctl.hidden = false;
+      capEl.hidden = true;
+      if (player) player.hidden = false;
+      this.root.classList.add('has-player');
     }
   }
 

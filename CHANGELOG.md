@@ -2,6 +2,29 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.7.0 — 2026-11-23
+
+- One sidebar on the left: **Levels**, **Views** and **Use cases** are collapsible menus (each head
+  folds its items; the choice is remembered per diagram), and the zoom lock, zoom in, zoom out, Fit and
+  fullscreen buttons sit at its foot, always in view while the menus scroll. The `«` toggle folds the
+  whole sidebar to a strip that keeps those buttons. The toolbar above the diagram and the view tabs
+  on top of the canvas are gone, so the canvas starts at the top.
+- Zoom lock: the padlock at the sidebar's foot holds the current zoom. While it is locked the zoom
+  buttons are off, Ctrl + scroll, pinch and `+`/`-` don't zoom (a hint says the zoom is locked), and the
+  camera moves of levels, opening a component, Fit and use cases only pan, centred on the point they
+  aimed at. Dragging still moves around. `zoom_lock: true` opens the diagram locked at its opening zoom.
+- The player moved to the top of the canvas: a tab with the play state and the step `n/N` hangs from
+  its top edge, and hovering it (clicking on touch, or keyboard focus) drops the controls down. They fold
+  back when the pointer leaves and whenever a use case starts playing. The per-step dots are gone: the
+  `n/N` count is the progress.
+- One description: the caption under the canvas is gone and the step card on the canvas carries
+  everything (the step's `n/N` and title, the use case's title on the right, the action line, the
+  text). Before the first step the card introduces the use case. With Details on, the same card grows a
+  little (wider and taller, a long `detail` scrolls inside it) instead of moving under the canvas.
+- `preview.cjs` checks the sidebar (menus, a menu folding, the buttons at its foot, folding the whole
+  sidebar), the zoom lock, the player drawer (closed by default, opens on hover, folds while playing)
+  and the merged card, with `sidebar.png`, `player-open.png`, `zoom-locked.png` and `collapsed.png`.
+
 ## interactive-diagrams 1.6.1 — 2026-11-22
 
 - Arrow labels no longer sit on other arrows' pills. With `layout: auto`, ELK kept room only for the

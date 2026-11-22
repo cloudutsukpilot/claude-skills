@@ -6,7 +6,7 @@ celebrated at the end. Optionally, components can sit on a world map.
 
 ## 1. Use cases (scenarios)
 
-The reader picks a use case from a sidebar; Play runs it and auto-play moves on to the next. Each step
+The reader picks a use case from the **Use cases** menu in the sidebar; Play runs it and auto-play moves on to the next. Each step
 opens the groups its components sit in and closes the ones no later step needs; when the player
 finishes, the diagram goes back to the reader's level, groups, view tab and zoom. (`loop: true` at the
 top level starts again after the last use case.)
@@ -69,12 +69,11 @@ Rules:
   - `**How:**` the mechanism and its numbers (limits, retries, timeouts), or a short `- ` list.
   Explain each term the first time it appears ("Temporal, the workflow engine that remembers how
   far each run got"), say known gaps plainly, and set `details: true` so the card opens with them.
-- **The step card** shows, for the current step: its number and `title`, the banner line
-  (`action`, then the outcome), and `text` or `detail`. With Details off it floats at the bottom of
-  the canvas; with Details on it sits under the canvas at the figure's full width, shows the whole
-  description without scrolling and covers no component (in full screen it scrolls inside the card
-  past about a quarter of the screen). The caption under the canvas shows the use case's title and
-  summary.
+- **The step card** at the bottom of the canvas is the one place for the description. For the
+  current step it shows `n/N`, the step's `title` and, on the right, the use case's title; then the
+  banner line (`action`, then the outcome), and `text` or `detail`. Before the first step it
+  introduces the use case: its title and `summary`. With Details on, the same card grows a little
+  (wider, and taller up to about a third of the canvas) and a longer `detail` scrolls inside it.
 - **End with the outcome:** the last step of each use case (and of each mode) has `result: success`,
   `done` or `fail` plus a short `outcome`. The engine celebrates at the last hop's target (`at: <id>`
   overrides): confetti and a check for success, a red cross and a shake for fail.
@@ -86,6 +85,11 @@ Rules:
 - Pick use cases from what the system is for: signing in, the main request, a deploy, an alert, a
   batch job, a failure path. 2 to 6 use cases is typical.
 - A single legacy `tour:` (`{title, steps}`) still works as one use case.
+- **The player** is a tab hanging from the top edge of the canvas: the play state and the step
+  `n/N`. Hovering it (or clicking it, on touch, or tabbing to it) drops the controls down: play,
+  previous, next, restart, the step count, speed, the layout padlock, the alternative mode and Details.
+  It folds back when the pointer leaves and whenever a use case starts playing, so the canvas stays
+  clear while the story runs. There are no per-step dots: the `n/N` count is the progress.
 - **Lock mode.** The padlock in the player (or `lock: true` at the top level) plays use cases on the
   reader's layout: their level, the components they opened and their view tab. Nothing opens or
   closes; the camera still moves to each step. A packet aimed inside a closed component travels to

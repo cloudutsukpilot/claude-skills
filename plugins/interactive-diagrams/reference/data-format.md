@@ -17,6 +17,7 @@ diagram only uses level-1 keys.
 | `wrap`, `aspect` | 1 | `wrap: true` wraps a long single chain into rows |
 | `layout` | 1 | `stable` (default): every component keeps its place when another opens or closes. `auto`: the whole diagram is laid out again on every change (the behaviour before 1.4) |
 | `min_zoom` | 1 | Opening zoom floor (default 0.62), so large diagrams open readable |
+| `zoom_lock` | 1 | `true`: open with the zoom locked at the opening zoom (the padlock at the foot of the sidebar toggles it). While locked, buttons, Ctrl + scroll, pinch and +/- don't zoom, and level changes, Fit and use cases only pan |
 | `accent`, `accent2` | 1 | `#RRGGBB`: accent = focus, level buttons and tour trail; accent2 = the tour pointer |
 | `nodes` | 1 | Required. The component tree (below) |
 | `edges` | 1 | The arrows (below) |
@@ -74,7 +75,7 @@ diagram only uses level-1 keys.
 |---|---|
 | `title`, `text` | Required. 2–5 words; 1–2 sentences under ~230 characters, saying what the step does and why |
 | `action` | Required. The banner line, under ~90 characters |
-| `detail` | Optional. 3–10 short lines of Markdown (under ~160 words), shown on the step card, under the canvas at full width, when the reader ticks Details |
+| `detail` | Optional. 3–10 short lines of Markdown (under ~160 words), shown on the step card, which grows a little for it, when the reader ticks Details |
 | `edges` | Arrows that run at the same time (one sender or one receiver) |
 | `path` | Hops one after another; `~id` runs an arrow backwards (the response) |
 | `lights` | Components to light without a packet |
