@@ -1,6 +1,6 @@
 # Plan: curved arrows in interactive diagrams
 
-**Status (2026-11-23):** Analysis done; step 1 (measure before deciding) is next. No engine change yet.
+**Status (2026-11-23):** Step 1 measured: curves don't save space; rounded corners are the safe win. Step 2 (the owner's choice) is next. No engine change yet.
 
 ## Why
 
@@ -67,6 +67,62 @@ All options would be a per-diagram setting (for example `edges: orthogonal | rou
 | 3. Engine | Path drawing from a shape setting; measuring with `getPointAtLength` so pills, labels, trails and the use-case packet follow curves; the data option in `validate.py` and `reference/data-format.md` | The three diagrams build, validate and pass the browser check at every level, with each setting |
 | 4. Skills and blog | The skills' docs say when to choose each style; the blog engine gets the same change (it is a copy) | Plugin release; blog diagrams unchanged unless a post opts in |
 
+## Step 1 results (2026-11-23)
+
+Prototype: branch `proto-curved-edges` (not for merging). One switch `?edges=` in the engine; each shape is flattened
+into dense points, so pills, labels, trails and the use-case packet follow it. `direct` copies the canvas: leave
+from the source's out side, enter the target's in side, loop round when the target is behind. `direct-tight` also
+cuts ELK's spacing (between layers 44 → 28, arrow gaps 14/9 → 6/3). `splines` needs `layout: auto`.
+
+Three diagrams, every level, browser 1500×950. Area is the deepest level (thousand px²); the other columns are
+summed over all levels. "Over a box" counts arrows that run more than 6 px through a component they don't connect;
+"clashes" counts pills and labels overlapping a component or each other.
+
+| Diagram | Style | Area | Arrow length | Crossings | Over a box | Clashes |
+|---|---|---|---|---|---|---|
+| GA4 page view (7 components) | orthogonal | 343 | 2,520 | 1 | 0 | 3/18 |
+| | rounded | 343 | 2,466 | 1 | 0 | 3/18 |
+| | smooth | 343 | 2,242 | 1 | 0 | 1/18 |
+| | direct | 343 | 2,756 | 2 | 3 | 11/18 |
+| | direct-tight | 328 | 2,553 | 2 | 3 | 9/18 |
+| | auto: orthogonal / splines | 542 / 542 | 3,324 / 3,143 | 0 / 0 | 0 / 0 | 0 / 6 of 18 |
+| Web shop (10) | orthogonal | 472 | 6,577 | 1 | 0 | 0/36 |
+| | rounded | 472 | 6,486 | 1 | 0 | 0/36 |
+| | smooth | 472 | 6,218 | 1 | 0 | 1/36 |
+| | direct | 478 | 6,832 | 7 | 7 | 26/36 |
+| | direct-tight | 457 | 6,312 | 7 | 7 | 28/36 |
+| | auto: orthogonal / splines | 1,053 / 1,053 | 10,325 / 9,978 | 3 / 3 | 0 / 0 | 0 / 10 of 36 |
+| Cloudutsuk Platform (74 at level 4) | orthogonal | 15,035 | 134,501 | 195 | 0 | 5/193 |
+| | rounded | 15,035 | 133,254 | 197 | 0 | 5/193 |
+| | smooth | 15,035 | 118,747 | 194 | 16 | 18/193 |
+| | direct | 15,035 | 120,749 | 277 | 66 | 59/193 |
+| | direct-tight | 14,863 | 113,317 | 236 | 69 | 67/193 |
+| | auto: orthogonal | 34,308 | 222,031 | 176 | 0 | 0/193 |
+| | auto: splines | — | — | — | — | — |
+
+Findings:
+
+1. **No style saves meaningful space.** The area is set by placement. Even with tighter spacing, canvas-style
+   arrows shrink the deepest level by 1–4%. The stable layout is already less than half the area of `layout: auto`
+   on the platform diagram, and that gain comes from placement, not arrows.
+2. **Rounded corners change nothing measurable:** same area, crossings, clashes, about 1% shorter arrows. Only the
+   look changes, so this is the safe default.
+3. **Smooth curves read best on small diagrams** (GA4 and web shop: fewer clashes, 5–11% less ink). On the platform
+   diagram they cut corners through components (16 arrows over a box, against 0) and clashes go from 5 to 18.
+4. **Canvas-style (direct) arrows are worse everywhere:** 3–9× the clashes, arrows over components on every
+   diagram, more crossings. A person placing every node can avoid that; an automatic layout can't.
+5. **ELK splines are out:** elkjs 0.12.0 crashes on the platform diagram (`Cannot read properties of null`, inside
+   ELK, also after the retry without wrapping). On the small ones the arrows come back with diagonal segments rather than
+   curves, and clashes rise (0 → 6 and 0 → 10).
+
+Screenshots side by side (deepest level of each diagram, six styles): `sheet-webshop-L2.png`, `sheet-ga4-L1.png`,
+`sheet-platform-L4.png` in the prototype's scratch folder; every level and style in `shots/`.
+
+**Recommendation for step 2:** rounded corners as a choice for every diagram (`edges: rounded`), possibly the new
+default since it changes no numbers; smooth curves as an opt-in for small diagrams (up to about 15 components), with
+a fix to stop corner-cutting (limit the curve to the free channel, which is what rounded with a large radius does).
+Drop ELK splines and canvas-style arrows.
+
 ## Recommendation before measuring
 
 Expect A or B to be the cheap win (softer arrows, same layout, low risk) and D to be the only real space saver,
@@ -77,9 +133,9 @@ to check that with numbers rather than taste.
 
 | Step | Status | PRs | Left |
 |---|---|---|---|
-| 1. Measure | Next | — | Owner's go-ahead |
-| 2. Decide | Planned | — | After step 1 |
+| 1. Measure | Done 2026-11-23 | #20 | — |
+| 2. Decide | Next | — | Owner's choice (see the recommendation) |
 | 3. Engine | Planned | — | After step 2 |
 | 4. Skills and blog | Planned | — | After step 3 |
 
-Waiting on the owner: go-ahead for step 1.
+Waiting on the owner: step 2, which styles to keep and whether rounded becomes the default.
