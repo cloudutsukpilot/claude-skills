@@ -49,7 +49,7 @@ python3 "$PLUGIN/scripts/build.py" diagrams/<name>/diagram.yml      # → diagra
 ```
 
 It validates first and refuses to build on errors. The page works offline except for ELK (layout,
-from jsDelivr) and Font Awesome (toolbar icons, from cdnjs).
+from jsDelivr) and Font Awesome (sidebar and player icons, from cdnjs).
 
 **Embedding** in a site (Jekyll, Hugo, MkDocs, Docusaurus, a wiki): copy `index.html` into the site's
 static files and embed it with
@@ -69,10 +69,12 @@ light, dark and phone views: layout at every level with no overlapping component
 (with the stable layout: the opened component stays put on screen, the others stay on their side of it,
 and closing it puts every component back),
 the hover card, the component panel, the arrow panel (exchange first, certificates below), view tabs,
-zoom, the start level, the use cases, fullscreen and no script errors. It exits 1 on any failure.
+the sidebar (Levels, Views and Use cases menus that fold, the zoom buttons at its foot, folding the
+whole sidebar), zoom and the zoom lock, the start level, the player drawer and the use cases,
+fullscreen and no script errors. It exits 1 on any failure.
 
 Read at least `light-desktop-level1.png`, the deepest level, `panel.png` and `card.png`; at level 2
-also `edge-panel.png` and the `view-*.png` files; at level 3 also `step-next.png`, `step-details.png`, `step-locked.png` and `outcome.png`.
+also `edge-panel.png` and the `view-*.png` files; at level 3 also `player-open.png`, `step-next.png`, `step-details.png`, `step-locked.png` and `outcome.png`. `sidebar.png` and `collapsed.png` show the sidebar open and folded.
 Fix what looks wrong (overlaps, a level with too many components, unreadable labels), rebuild and
 check again.
 

@@ -132,7 +132,7 @@ Create a level 3 diagram of the shop with use cases for "browse a product",
 /interactive-diagrams:diagram-level-3 add a "deploy a new version" walkthrough to diagrams/payments/diagram.yml
 ```
 
-Everything from level 2, plus a **Use cases** sidebar: Play sends a packet hop by hop along the real
+Everything from level 2, plus a **Use cases** menu in the sidebar: Play sends a packet hop by hop along the real
 arrows (and back for replies), each step shows a banner line, and the last step celebrates the
 outcome. A use case can have an alternative mode ("simulate a cache hit"). For multi-region systems,
 components can be pinned on a world map.
