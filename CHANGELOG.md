@@ -2,6 +2,16 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.7.1 — 2026-11-23
+
+- Play runs only the use case the reader picked: after its last step (and the outcome's pause) the player
+  stops and the diagram goes back to the reader's layout, instead of moving on to the next use case.
+  `loop: true` now plays the same use case again. `preview.cjs` checks that Play stops on the same use case.
+- The step card shows only while a use case runs: none before it is played, every step while it plays
+  or is stepped through, and it goes 5 seconds after the last step completes (the player also waits those
+  5 seconds before it puts the reader's layout back). It now spans the canvas's whole width at the bottom
+  (left of the side panel when one is open) instead of sitting in the middle. `preview.cjs` checks all three.
+
 ## interactive-diagrams 1.7.0 — 2026-11-23
 
 - One sidebar on the left: **Levels**, **Views** and **Use cases** are collapsible menus (each head

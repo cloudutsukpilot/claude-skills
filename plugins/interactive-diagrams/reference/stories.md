@@ -6,10 +6,10 @@ celebrated at the end. Optionally, components can sit on a world map.
 
 ## 1. Use cases (scenarios)
 
-The reader picks a use case from the **Use cases** menu in the sidebar; Play runs it and auto-play moves on to the next. Each step
+The reader picks a use case from the **Use cases** menu in the sidebar; Play runs that one use case and stops after its last step (pick another to play it). Each step
 opens the groups its components sit in and closes the ones no later step needs; when the player
 finishes, the diagram goes back to the reader's level, groups, view tab and zoom. (`loop: true` at the
-top level starts again after the last use case.)
+top level plays the same use case again instead.)
 
 ```yaml
 scenarios:
@@ -69,11 +69,12 @@ Rules:
   - `**How:**` the mechanism and its numbers (limits, retries, timeouts), or a short `- ` list.
   Explain each term the first time it appears ("Temporal, the workflow engine that remembers how
   far each run got"), say known gaps plainly, and set `details: true` so the card opens with them.
-- **The step card** at the bottom of the canvas is the one place for the description. For the
-  current step it shows `n/N`, the step's `title` and, on the right, the use case's title; then the
-  banner line (`action`, then the outcome), and `text` or `detail`. Before the first step it
-  introduces the use case: its title and `summary`. With Details on, the same card grows a little
-  (wider, and taller up to about a third of the canvas) and a longer `detail` scrolls inside it.
+- **The step card** at the bottom of the canvas, across its whole width (left of the side panel
+  when one is open), is the one place for the description. It shows only while a use case runs: from
+  its first step, through every step, until 5 seconds after its last step completes; there is none
+  before a use case is played. For the current step it shows `n/N`, the step's `title` and, on the
+  right, the use case's title; then the banner line (`action`, then the outcome), and `text` or
+  `detail`. With Details on, the same card grows a little taller and a longer `detail` scrolls inside it.
 - **End with the outcome:** the last step of each use case (and of each mode) has `result: success`,
   `done` or `fail` plus a short `outcome`. The engine celebrates at the last hop's target (`at: <id>`
   overrides): confetti and a check for success, a red cross and a shake for fail.
