@@ -115,8 +115,14 @@ Findings:
    ELK, also after the retry without wrapping). On the small ones the arrows come back with diagonal segments rather than
    curves, and clashes rise (0 → 6 and 0 → 10).
 
-Screenshots side by side (deepest level of each diagram, six styles): `sheet-webshop-L2.png`, `sheet-ga4-L1.png`,
-`sheet-platform-L4.png` in the prototype's scratch folder; every level and style in `shots/`.
+Screenshots side by side (deepest level, six styles each):
+
+![Cloudutsuk Platform, level 4](diagram-curved-edges/sheet-platform-L4.png)
+![Web shop, level 2](diagram-curved-edges/sheet-webshop-L2.png)
+![GA4 page view, level 1](diagram-curved-edges/sheet-ga4-L1.png)
+
+Every level and style (75 screenshots), the raw numbers (`results.json`) and the measuring script
+(`measure.cjs`, Playwright) are on the prototype branch `proto-curved-edges`, in `docs/plans/diagram-curved-edges-measure/`.
 
 **Recommendation for step 2:** rounded corners as a choice for every diagram (`edges: rounded`), possibly the new
 default since it changes no numbers; smooth curves as an opt-in for small diagrams (up to about 15 components), with
