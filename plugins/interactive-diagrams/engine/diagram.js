@@ -290,17 +290,100 @@
     return { k, lon0, lon1, lat0, lat1, x: (lon) => k * (lon - lon0), y: (lat) => k * (lat0 - lat) };
   }
 
+  // PROTOTYPE (curved-edges plan step 1): ?edges=orthogonal|rounded|smooth|splines|direct|direct-tight
+  const EDGE_STYLE = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('edges')) || 'orthogonal';
+  const TIGHT = EDGE_STYLE === 'direct-tight';
   const ELK_SPACING = {
     'elk.algorithm': 'layered',
-    'elk.edgeRouting': 'ORTHOGONAL',
+    'elk.edgeRouting': EDGE_STYLE === 'splines' ? 'SPLINES' : 'ORTHOGONAL',
     'elk.spacing.nodeNode': '24',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '44',
-    'elk.spacing.edgeNode': '14',
-    'elk.spacing.edgeEdge': '9',
-    'elk.layered.spacing.edgeNodeBetweenLayers': '14',
+    'elk.layered.spacing.nodeNodeBetweenLayers': TIGHT ? '28' : '44',
+    'elk.spacing.edgeNode': TIGHT ? '6' : '14',
+    'elk.spacing.edgeEdge': TIGHT ? '3' : '9',
+    'elk.layered.spacing.edgeNodeBetweenLayers': TIGHT ? '6' : '14',
     'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
     'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES'
   };
+
+
+  // PROTOTYPE: each arrow shape is flattened into dense points, so measuring, pills, trails and packets work unchanged.
+  const bez3 = (a, b, c, d, n = 16) => Array.from({ length: n }, (_, i) => {
+    const t = (i + 1) / n, u = 1 - t;
+    return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]];
+  });
+  const bez2 = (a, c, b, n = 10) => Array.from({ length: n }, (_, i) => {
+    const t = (i + 1) / n, u = 1 - t;
+    return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]];
+  });
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const towards = (a, b, d) => { const L = dist(a, b) || 1; return [a[0] + ((b[0] - a[0]) * d) / L, a[1] + ((b[1] - a[1]) * d) / L]; };
+  function roundedPts(pts, R) {
+    if (pts.length < 3) return pts;
+    const out = [pts[0]];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const r = Math.min(R, dist(pts[i - 1], pts[i]) / 2, dist(pts[i], pts[i + 1]) / 2);
+      const a = towards(pts[i], pts[i - 1], r), b = towards(pts[i], pts[i + 1], r);
+      out.push(a, ...bez2(a, pts[i], b));
+    }
+    out.push(pts[pts.length - 1]);
+    return out;
+  }
+  function smoothPts(pts) {
+    // Quadratic B-spline: corners are control points, segment midpoints are on the curve.
+    if (pts.length < 3) return pts;
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const out = [pts[0]];
+    let from = pts[0];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const to = i === pts.length - 2 ? pts[i + 1] : mid(pts[i], pts[i + 1]);
+      out.push(...bez2(from, pts[i], to, 14));
+      from = to;
+    }
+    return out;
+  }
+  function splinePts(pts) {
+    // ELK SPLINES: start, then (c1, c2, end) triples of cubic Béziers.
+    if ((pts.length - 1) % 3 !== 0 || pts.length < 4) return smoothPts(pts);
+    const out = [pts[0]];
+    for (let i = 0; i + 3 < pts.length; i += 3) out.push(...bez3(pts[i], pts[i + 1], pts[i + 2], pts[i + 3]));
+    return out;
+  }
+  function directPts(A, B, flow) {
+    // As the canvas (React Flow getBezierPath): leave from the source's out side, enter the target's in side,
+    // whatever their positions; an arrow against the flow loops around. Ports at the icon's height for icon
+    // components (their label sits below), else the box middle.
+    const vert = flow === 'down' || flow === 'up';
+    const s = flow === 'left' || flow === 'up' ? -1 : 1;
+    // A leaf is an icon disc at the top with its label below: ports on the disc. A group: its box sides.
+    const port = (b, out) => {
+      const sgn = out ? s : -s;
+      if (b.group) return vert ? [b.x + b.w / 2, sgn > 0 ? b.y + b.h : b.y] : [sgn > 0 ? b.x + b.w : b.x, b.y + b.h / 2];
+      const cx = b.x + b.w / 2, cy = b.y + 6 + DISC / 2, r = DISC / 2 + 3;
+      return vert ? [cx, sgn > 0 ? (out ? b.y + b.h : cy - r) : (out ? cy - r : b.y + b.h)] : [cx + sgn * r, cy];
+    };
+    const p = port(A, true);
+    const q = port(B, false);
+    const n = vert ? [0, s] : [s, 0];
+    const along = vert ? (q[1] - p[1]) * s : (q[0] - p[0]) * s;
+    const k = along >= 0 ? Math.max(25, 0.5 * along) : 25 + 0.25 * Math.abs(along) + 0.25 * Math.abs(vert ? q[0] - p[0] : q[1] - p[1]);
+    return [p, ...bez3(p, [p[0] + n[0] * k, p[1] + n[1] * k], [q[0] - n[0] * k, q[1] - n[1] * k], q, 24)];
+  }
+  function shapeEdges(placed, vis, flow) {
+    const t0 = performance.now();
+    for (const v of vis) {
+      const pe = placed.edges.get(v.key);
+      if (!pe || !pe.pts) continue;
+      if (EDGE_STYLE === 'rounded') pe.pts = roundedPts(pe.pts, 12);
+      else if (EDGE_STYLE === 'smooth') pe.pts = smoothPts(pe.pts);
+      else if (EDGE_STYLE === 'splines' && pe.spline) pe.pts = splinePts(pe.pts);
+      else if (EDGE_STYLE.startsWith('direct')) {
+        const A = placed.nodes.get(v.from), B = placed.nodes.get(v.to);
+        if (A && B) pe.pts = directPts(A, B, flow);
+      }
+      pe.label = null;
+    }
+    placed.shapeMs = performance.now() - t0;
+  }
 
   // ---------------------------------------------------------------- stable layout
   // Push siblings apart around the ones that grew. items: [{bx, by, bw, bh, w, h}] = base center, base
@@ -1484,6 +1567,7 @@
         const pts = paths.get(v.key);
         if (pts) placed.edges.set(v.key, { pts, label: null });
       }
+      shapeEdges(placed, vis, this.data.direction || 'right');
       this.placeLabels(placed, vis);
       return placed;
     }
@@ -1616,10 +1700,11 @@
           const lab = i === labelled && e && (e.labels || [])[0];
           if (lab) label = { x: lab.x + lab.width / 2, y: lab.y + lab.height / 2 };
         });
-        placed.edges.set(key, { pts, label });
+        placed.edges.set(key, { pts, label, spline: ids.length === 1 });
       }
       // ELK keeps room for each pill but not for the text label drawn above it, and labels of arrows in
       // different containers never see each other: check every spot as the stable layout does.
+      shapeEdges(placed, vis, this.data.direction || 'right');
       this.placeLabels(placed, vis);
       return placed;
     }
@@ -1743,6 +1828,8 @@
     }
 
     render(placed, vis, animate) {
+      this._placed = placed;
+      this._vis = vis;
       const old = this.pos;
       this.pos = new Map(placed.nodes);
       // Components: reuse elements by id so they glide to their new place.
