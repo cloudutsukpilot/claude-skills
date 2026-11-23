@@ -107,6 +107,8 @@ diagram only uses level-1 keys.
   component highlights its arrows; hovering an arrow shows its card; clicking opens the side panel
   (resizable, remembered per reader). Keyboard: Tab to a component, Enter to open it, arrow keys pan,
   `+` / `−` / `0` zoom.
+- **Sidebar:** every page load opens it folded to the strip of zoom, Fit and fullscreen buttons; `»`
+  unfolds it. Fullscreen unfolds it, and leaving fullscreen puts it back as it was.
 - Nothing is kept in the URL: every load opens at `level` on the main view.
 
 ## Packet (`packet`, `reply`, a step's `packets`)

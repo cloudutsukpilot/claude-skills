@@ -2,6 +2,17 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.12.0 — 2026-11-24
+
+- The sidebar opens folded on every page load (to the strip of zoom, Fit and fullscreen buttons), so
+  the canvas has the room; the reader's earlier choice is no longer remembered. Fullscreen unfolds it,
+  and leaving fullscreen puts it back as it was.
+- Fix: with the player box open, entering fullscreen zoomed to a negative scale and the diagram
+  vanished. The camera still framed steps for the old corner box (the room left of it); it now frames
+  them in the room above the full-width box.
+- `preview.cjs` checks that the sidebar opens folded, that fullscreen unfolds it and shows the diagram,
+  and that leaving fullscreen folds it again.
+
 ## interactive-diagrams 1.11.0 — 2026-11-24
 
 - The player box spans the bottom of the canvas: the description takes the width on the left and the
