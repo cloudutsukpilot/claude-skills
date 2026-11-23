@@ -122,7 +122,7 @@ Security layers come from the arrow itself (its ends, `proto`, `port`, `certs`),
 | `lang` | `json`, `yaml`, `sql`, `text`, `protobuf` … (default: `json` for a mapping or a string starting with `{`/`[`) |
 | `note` | A short Markdown note under the packet (what a field means, what the receiver checks) |
 | `source` | Where it was copied from: a file path, schema or doc. Required unless `illustrative` |
-| `illustrative` | `true` when the content is shortened or made up to show the shape; the inspector labels it |
+| `illustrative` | `true` when the values are examples: with `source`, the inspector says the shape follows the source and the values are examples; alone, that the content is shortened or made up |
 
 A packet needs one of `line`, `headers` or `body`. Never put a real token, key, password or private
 address in one: write `<token>`, `<api key>`, `example.com`. `validate.py` rejects anything that looks

@@ -497,6 +497,8 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
             src: !!f.querySelector('.dgm-pk-src'),
           }));
           check(c.raw.length > 5 && c.src, `a hop with a recorded packet shows its content and where it comes from (${c.raw.split('\n')[0].slice(0, 50)})`);
+          const box = await page.$eval(sel, (f, k) => f.querySelector('.dgm-banner-n').textContent === `${k + 1}/${f._dgm.steps.length}`, withPk.k);
+          check(box, 'the player box shows the step being inspected');
           await fig.screenshot({ path: path.join(args.out, 'inspector-content.png') });
           // The inspector follows the steps while it is open.
           if (withPk.k + 1 < (await stepCount())) {

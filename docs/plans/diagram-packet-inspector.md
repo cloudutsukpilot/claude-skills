@@ -20,7 +20,7 @@ is optional and kept to 1 to 3 hops per use case, copied from code (`source`) or
 | Step | Status | PRs | Left |
 |---|---|---|---|
 | 1. Plugin engine, validator, docs, example, version 1.9.0 | In progress (2026-11-23) | this branch | Review and merge, tag `interactive-diagrams-v1.9.0` |
-| 2. platform-wardens diagram: packets for the key hops, copied from the code | Planned | — | After step 1 |
-| 3. Blog engine (`sakharams.github.io`) and its `cloudutsuk-diagram` skill | Planned | — | After step 1 |
+| 2. platform-wardens diagram: packets for the key hops, copied from the code | In progress (2026-11-23) | branch `diagram-packets` | 16 packets on 12 steps in 4 use cases (webhooks, bus, incident start, model call, handoff, Slack, kill switch, MCP); review and merge after step 1 |
+| 3. Blog engine (`sakharams.github.io`) and its `cloudutsuk-diagram` skill | In progress (2026-11-23) | branch `diagram-packet-inspector` | Engine, validator and docs ported; no blog diagram records packets yet (a public one, such as the GA4 page view, could) |
 
 Waiting on you: reviewing and merging the PRs.

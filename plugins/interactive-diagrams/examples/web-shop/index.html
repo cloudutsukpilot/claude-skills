@@ -4806,7 +4806,12 @@ body.dgm-full-open {
           h += layer('body', 'Body', 'Payload', `${bytes} bytes · ${esc(lang)}`, `<div class="dgm-config dgm-pk-payload"><div class="dgm-config-head"><span>${esc(lang)} · ${bytes} bytes</span><button type="button" class="dgm-copy">Copy</button></div><pre><code>${esc(body)}</code></pre></div>`);
         }
         if (pk) {
-          const src = [pk.note ? `<div class="dgm-pk-note">${markdown(String(pk.note))}</div>` : '', pk.source ? `<div class="dgm-pk-src">Copied from <code>${esc(pk.source)}</code></div>` : '', pk.illustrative ? '<div class="dgm-pk-src"><span class="dgm-pk-ill">Illustrative</span> shortened or made up to show the shape, not copied from a real request</div>' : ''].join('');
+          // Where it comes from: copied from `source`; with `illustrative` too, the shape follows the source and
+          // the values are examples; `illustrative` alone, shortened or made up.
+          const from = pk.source ? `<code>${esc(pk.source)}</code>` : '';
+          const ill = '<span class="dgm-pk-ill">Illustrative</span>';
+          const origin = pk.illustrative ? (from ? `${ill} the shape follows ${from}; the values are examples` : `${ill} shortened or made up to show the shape, not copied from a real request`) : from ? `Copied from ${from}` : '';
+          const src = [pk.note ? `<div class="dgm-pk-note">${markdown(String(pk.note))}</div>` : '', origin ? `<div class="dgm-pk-src">${origin}</div>` : ''].join('');
           h += src;
           if (sec.enc && (body != null || pk.line)) h += '<div class="dgm-pk-src">On the wire this content is encrypted; the inspector shows it as the receiver reads it.</div>';
         } else {
@@ -4820,10 +4825,17 @@ body.dgm-full-open {
       this.inspect = (i, j = 0, settle = false) => {
         const x = this.steps[i];
         if (!x) return;
-        if (settle && this.k < i) {
-          this.k = i;
-          this.computeLit(i);
-          this.applyLit();
+        if (settle) {
+          if (this.k < i) {
+            this.k = i;
+            this.computeLit(i);
+            this.applyLit();
+          }
+          // The box shows the same step (a pause before its card was drawn would leave the one before).
+          this.stepRunning = i;
+          this.showBox(true);
+          this.setCaption(i);
+          this.setBanner(x.action || x.title);
         }
         const legs = x.groups.flat();
         j = Math.max(0, Math.min(j, legs.length - 1));
