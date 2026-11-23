@@ -241,6 +241,15 @@ scenarios:
           - Checkout is never cached: the CDN passes `POST /api/checkout` straight to the cluster over HTTPS.
           - The ingress routes `/api` to the API on 8080.
           - Nothing is charged yet; the API first loads the cart (next step).
+        # What the inspector shows for a hop. This shop is an example, so its packets are illustrative;
+        # in a real diagram copy them from the code or the API schema and name it in `source`.
+        packets:
+          c_cdn:
+            summary: The browser posts the checkout form as JSON, with the session cookie.
+            line: POST /api/checkout HTTP/2
+            headers: {Host: shop.example.com, Content-Type: application/json, Cookie: "session=<session id>"}
+            body: {cartId: "c_7f3a", shipping: {method: standard, postcode: "SW1A 1AA"}, paymentMethod: "pm_card_visa"}
+            illustrative: true
       - {title: Load the cart, action: "API ↔ Redis: read the session and cart", text: "The API reads the cart from Redis on 6379.", path: [api_redis, ~api_redis]}
       - title: Charge the card
         action: 'API ↔ Payments: create a charge (443)'
@@ -250,7 +259,38 @@ scenarios:
           - The API calls the payment provider over HTTPS on 443, with a secret API key in the `Authorization` header.
           - The API waits for the provider's answer: the charge is accepted or declined.
           - Settlement comes later, as a webhook (step 6).
-      - {title: Save the order, action: "API ↔ PostgreSQL: insert the order", text: "The order is written to PostgreSQL.", path: [api_pg, ~api_pg]}
+        packets:
+          api_pay:
+            summary: The API asks for a charge of the cart's total, with an idempotency key so a retry never charges twice.
+            line: POST /v1/charges HTTP/1.1
+            headers: {Authorization: "Bearer <secret key>", Idempotency-Key: "order-1042", Content-Type: application/json}
+            body: {amount: 2400, currency: gbp, payment_method: "pm_card_visa", metadata: {order: "1042"}}
+            illustrative: true
+          ~api_pay:
+            line: HTTP/1.1 200 OK
+            headers: {Content-Type: application/json}
+            body: {id: "ch_3Nx…", status: succeeded, amount: 2400, currency: gbp}
+            illustrative: true
+      - title: Save the order
+        action: "API ↔ PostgreSQL: insert the order"
+        text: The order is written to PostgreSQL.
+        path: [api_pg, ~api_pg]
+        packets:
+          api_pg:
+            summary: One parameterised insert; the values travel separately from the SQL text.
+            line: "Parse + Bind + Execute (extended query protocol)"
+            body: |
+              INSERT INTO orders (id, cart_id, total_pence, status)
+              VALUES ($1, $2, $3, 'charged')
+              RETURNING id;
+              -- $1 = 1042, $2 = 'c_7f3a', $3 = 2400
+            lang: sql
+            illustrative: true
+          ~api_pg:
+            line: "CommandComplete: INSERT 0 1"
+            body: "id\n----\n1042"
+            lang: text
+            illustrative: true
       - {title: Confirm to the shopper, action: "API → Ingress → CDN → Customer: order confirmed", text: "The confirmation page returns the way the request came.", path: [~ing_api, ~cdn_ing, ~c_cdn]}
       - title: Payment settles
         action: 'Payments → Ingress → API: signed webhook'
@@ -260,5 +300,20 @@ scenarios:
           - Later the provider posts a webhook to the shop's public address (443).
           - Each call is signed; the API checks the signature before it trusts the call and marks the order paid.
           - It is one-way: nothing travels back to the provider except the HTTP status.
-      - {title: Queue the email, action: "API → Redis: add the order to the stream", text: "The API adds an event to the `orders` stream and moves on.", edges: [api_stream]}
+        packets:
+          pay_hook:
+            summary: The provider says the charge settled; the signature header proves the call came from it.
+            line: POST /api/webhooks/payments HTTP/1.1
+            headers: {Content-Type: application/json, Payment-Signature: "t=1764000000,v1=<hmac-sha256>"}
+            body: {type: charge.succeeded, data: {id: "ch_3Nx…", metadata: {order: "1042"}}}
+            illustrative: true
+      - title: Queue the email
+        action: "API → Redis: add the order to the stream"
+        text: The API adds an event to the `orders` stream and moves on.
+        edges: [api_stream]
+        packets:
+          api_stream:
+            line: XADD orders * order 1042 email shopper@example.com
+            lang: text
+            illustrative: true
       - {title: Send the email, action: "Worker → Email service: send the confirmation", text: "The worker reads the event and posts the email over HTTPS.", edges: [worker_mail], result: success, outcome: "Order placed and confirmed"}

@@ -68,6 +68,7 @@ diagram only uses level-1 keys.
 | `cards` | 2 | Override the exchange groups, in order |
 | `view`, `main` | 2 | Put the arrow in a view tab (hidden from the main view unless `main: true`) |
 | `when` | 3 | Only drawn in that use-case mode |
+| `packet`, `reply` | 3 | What this arrow's request (`packet`) and response (`reply`) carry, for the packet inspector, whenever a use case sends it. Keys below; a step's `packets` overrides them |
 
 ## Use-case step (`scenarios[].steps`)
 
@@ -79,6 +80,7 @@ diagram only uses level-1 keys.
 | `edges` | Arrows that run at the same time (one sender or one receiver) |
 | `path` | Hops one after another; `~id` runs an arrow backwards (the response) |
 | `lights` | Components to light without a packet |
+| `packets` | What this step's hops carry, for the packet inspector: `{<edge id>: packet, ~<edge id>: reply packet}`; each key must be a hop of this step |
 | `when` | The mode this step belongs to |
 | `clear` | Clear earlier highlights first |
 | `result`, `outcome`, `at` | `success`, `done` or `fail` on the last step; the outcome text; where to celebrate |
@@ -105,3 +107,24 @@ diagram only uses level-1 keys.
   (resizable, remembered per reader). Keyboard: Tab to a component, Enter to open it, arrow keys pan,
   `+` / `−` / `0` zoom.
 - Nothing is kept in the URL: every load opens at `level` on the main view.
+
+## Packet (`packet`, `reply`, a step's `packets`)
+
+What the packet inspector shows under Application and Payload for one hop. The Network, Transport and
+Security layers come from the arrow itself (its ends, `proto`, `port`, `certs`), so they need nothing here.
+
+| Key | Notes |
+|---|---|
+| `summary` | One sentence: what this packet asks or answers (the inspector's lead; default the arrow's `why`) |
+| `line` | The first line on the wire: request line (`POST /v1/runs HTTP/1.1`), status line (`HTTP/1.1 202 Accepted`), the gRPC method, the SQL command, the Redis command |
+| `headers` | A mapping (`Name: value`) or a list of `Name: value` lines: HTTP headers, gRPC metadata, message properties |
+| `body` | The payload: a mapping or list (shown as JSON) or a string (`lang` says what it is). Keep the fields that explain the step and shorten the rest with `…` |
+| `lang` | `json`, `yaml`, `sql`, `text`, `protobuf` … (default: `json` for a mapping or a string starting with `{`/`[`) |
+| `note` | A short Markdown note under the packet (what a field means, what the receiver checks) |
+| `source` | Where it was copied from: a file path, schema or doc. Required unless `illustrative` |
+| `illustrative` | `true` when the content is shortened or made up to show the shape; the inspector labels it |
+
+A packet needs one of `line`, `headers` or `body`. Never put a real token, key, password or private
+address in one: write `<token>`, `<api key>`, `example.com`. `validate.py` rejects anything that looks
+like a live token or key.
+

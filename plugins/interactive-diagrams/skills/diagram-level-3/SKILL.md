@@ -20,7 +20,7 @@ description: >-
 |---|---|---|
 | 1 | diagram-level-1 | Components in levels, facts panels, arrows with why, protocol and port |
 | 2 | diagram-level-2 | Certificates on every arrow, the exchange on the wire, view tabs |
-| **3** | **diagram-level-3** | Use cases: packets travel the arrows step by step, with outcomes |
+| **3** | **diagram-level-3** | Use cases: packets travel the arrows step by step, with outcomes; a packet inspector |
 
 Level 3 includes everything in levels 1 and 2. To raise an existing diagram, keep its file and add
 the missing keys (certificates and views first if it is level 1).
@@ -43,7 +43,10 @@ Follow `PLUGIN/reference/structure.md`, `PLUGIN/reference/connections.md`, then
 back (`~id`), every step has `title`, `action` and `text` (1 or 2 sentences: what the step does
 and why), every step has `detail` (3 to 10 lines, shown with the player's Details box; a step
 without one only lists its hops there; for a semi-technical audience, as What happens / Why it
-matters / How, per `stories.md`), and the last step has `result` and `outcome`. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
+matters / How, per `stories.md`), and the last step has `result` and `outcome`. For the packet
+inspector, record what 1 to 3 hops per use case carry (`packets` on the step: `line`, `headers`,
+`body`), copied from the code or an API schema with `source`, or marked `illustrative: true`;
+placeholders for every token or key. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
 cases should play on the start level without opening groups (the reader can toggle the padlock).
 
 ## 3. Write
@@ -68,7 +71,8 @@ deepest level, `panel.png`, `card.png`, `edge-panel.png`, the `view-*.png` files
 (a packet on its arrow and the step card), `player-open.png` (the player box in the bottom-right
 corner, controls at its foot), `step-details.png` (the same box with Details ticked, taller, the
 description readable), `step-locked.png` (lock mode: the same packet on the
-reader's layout, nothing opened) and `outcome.png`.
+reader's layout, nothing opened), `inspector.png` (the packet inspector's layers),
+`inspector-content.png` (a recorded packet's message and payload) and `outcome.png`.
 
 ## 7. Report
 

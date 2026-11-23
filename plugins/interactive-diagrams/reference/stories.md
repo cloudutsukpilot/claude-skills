@@ -80,6 +80,21 @@ Rules:
   the banner line (`action`, then the outcome) and `text` or `detail`; the controls sit at its foot.
   With Details on, the same box grows taller and a longer `detail` scrolls inside it. While it is up,
   the camera frames each step in the room left of it.
+- **The packet.** Each hop is drawn as a small packet (a frame with a header strip and the arrow's
+  protocol on it, a chevron showing which way it goes): requests in `accent2`, replies green.
+- **The packet inspector.** A press on a moving packet, or the magnifier in the player's controls,
+  pauses the use case and opens the side panel on that step's hops (one tab per hop), layer by layer
+  like a packet capture: **Network** (source and destination components), **Transport** (TCP or UDP,
+  the server's port, the client's ephemeral one), **Security** (TLS or mTLS with the certificates from
+  `certs`, or why there is none), **Application** (the protocol's message, then the packet's own
+  `line` and `headers`) and **Payload** (`body`, with its size and a Copy button). The step counts
+  as reached, so Next and Play go on from the next step, and the inspector follows the steps until
+  another panel opens. Every hop gets the first three layers from its arrow. Record the content
+  (`packets` on a step, or `packet` / `reply` on an arrow used the same way everywhere) for the hops
+  that teach the most: **1 to 3 per use case** (the request that starts it, the call that decides
+  the outcome, the event that ends it), not every hop. Copy it from the code, an API schema or a
+  captured request and name that in `source`; anything shortened or invented gets
+  `illustrative: true`. No real tokens, keys, passwords or private hosts: use placeholders.
 - **End with the outcome:** the last step of each use case (and of each mode) has `result: success`,
   `done` or `fail` plus a short `outcome`. The engine celebrates at the last hop's target (`at: <id>`
   overrides): confetti and a check for success, a red cross and a shake for fail.
@@ -92,7 +107,7 @@ Rules:
   batch job, a failure path. 2 to 6 use cases is typical.
 - A single legacy `tour:` (`{title, steps}`) still works as one use case.
 - **The player's controls** are at the foot of the player box: play/pause, previous, next,
-  restart, speed, the layout padlock, the alternative mode and Details. They exist only while a use
+  restart, speed, the layout padlock, the packet inspector, the alternative mode and Details. They exist only while a use
   case runs, so nothing sits on the canvas otherwise. There are no per-step dots: the `n/N` count in
   the box's head is the progress.
 - **Lock mode.** The padlock in the player (or `lock: true` at the top level) plays use cases on the
