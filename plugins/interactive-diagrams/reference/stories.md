@@ -71,15 +71,25 @@ Rules:
   - `**How:**` the mechanism and its numbers (limits, retries, timeouts), or a short `- ` list.
   Explain each term the first time it appears ("Temporal, the workflow engine that remembers how
   far each run got"), say known gaps plainly, and set `details: true` so the card opens with them.
-- **The player box** in the canvas's bottom-right corner (about 22rem wide; left of the side panel
-  when one is open; the full width on a phone) is the one place for the description and the player. It
+- **The player box** across the bottom of the canvas (left of the side panel when one is open and
+  the canvas has room, over the panel's foot when it does not) is the one place for the description
+  and the player. The description takes the width on the left and the box is as tall as it needs (a
+  long description scrolls inside it); the controls sit on the right in a 2 x 4 grid with the toggles
+  under it (on a phone, in a row under the description). It
   shows only while a use case runs: a click on a use case opens it, it stays through every step (also
   when paused), and it goes 5 seconds after the last step completes, or at once with its close button
   (which stops the use case and puts the reader's layout back). There is none before a use case is
   played. Its head shows `n/N`, the use case's title and the close button; then the step's `title`,
-  the banner line (`action`, then the outcome) and `text` or `detail`; the controls sit at its foot.
-  With Details on, the same box grows taller and a longer `detail` scrolls inside it. While it is up,
-  the camera frames each step in the room left of it.
+  the banner line (`action`, then the outcome) and `text` or `detail`, with the close button in the
+  box's corner. With Details on, the same box grows taller and a longer `detail` scrolls inside it.
+  While it is up, the camera frames each step in the room above it.
+- **The packet rests on its target.** Once a packet reaches the end of its hop it stays there for 2
+  seconds (at 1x; the speed button shortens it), breathing softly, so a reader can press it and
+  inspect it; then the next hop starts. A step with many hops takes 2 seconds more per hop.
+- **Drag lock.** The hand at the foot of the sidebar (or `drag_lock: true` at the top level) keeps the
+  view where the reader put it: dragging and the arrow keys stop panning, and use cases stop moving the
+  camera to each step and to the outcome, so packets travel across the view as framed. Zoom (the
+  buttons, Ctrl + scroll, pinch, +/-) and Fit still work.
 - **The packet.** Each hop is drawn as a small packet (a frame with a header strip and the arrow's
   protocol on it, a chevron showing which way it goes): requests in `accent2`, replies green.
 - **The packet inspector.** A press on a moving packet, or the magnifier in the player's controls,
@@ -121,7 +131,8 @@ Rules:
   one card titled "Inside Backend · 3 steps" lists each step's title and `text` (its `detail` with
   Details on), the `n/N` count and the use case's step count in the menu drop to match, the banner
   line names the step that is moving, and the packet inspector has a tab for every hop of the group.
-  A step that also leaves the component, or has `clear`, starts a new step. Opening the component, a
+  A step that also leaves the component, or has `clear`, starts a new step. A use case keeps at least
+  two steps: if grouping would fold all of it into one card, every step plays on its own. Opening the component, a
   deeper level or turning lock off shows the steps one by one again. So write each step for the
   deepest level: the grouping is the engine's job, and a step's `title` and `text` must still make
   sense in a list with its neighbours.

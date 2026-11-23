@@ -2,6 +2,26 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.11.0 — 2026-11-24
+
+- The player box spans the bottom of the canvas: the description takes the width on the left and the
+  box grows with it (up to a cap, then it scrolls); the controls sit on the right in a 2 x 4 grid with
+  the mode and Details toggles under it, and the close button is in the box's corner. On a phone the
+  controls are a row under the description. With a side panel open the box sits left of it while the
+  canvas leaves it 460px, otherwise over the panel's foot.
+- A packet rests on its target for 2 s (at 1x) when its hop ends, breathing softly, so it can be
+  pressed and inspected; Play waits for it before the next hop.
+- Drag lock: a hand at the foot of the sidebar, beside the zoom lock, or `drag_lock: true`. While it is
+  on, dragging and the arrow keys don't pan, and use cases don't move the camera to each step, to the
+  outcome or back at the end: the packets travel across the view the reader framed. Zoom and Fit work.
+- Lock mode keeps a use case at two steps or more. When every hop of a use case stays inside one closed
+  component (at level 0 a whole use case can sit inside "Homelab"), grouping would leave a single card
+  and Play would have nothing to step through; such a use case now plays every step on its own.
+- `preview.cjs` checks, in lock mode at every level, that no use case of two or more steps becomes one;
+  that the box spans the canvas with the controls beside the description in 2 rows; that a packet
+  rests about 2 s on its target; and that with drag lock on, dragging, the arrow keys and Play leave
+  the view where it was. Its outcome check waits up to 70 s, as each hop now rests 2 s.
+
 ## interactive-diagrams 1.10.0 — 2026-11-23
 
 - Lock mode groups steps by the closed components of the reader's layout. Consecutive steps whose every

@@ -1328,12 +1328,14 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   position: absolute;
   right: 0.6rem;
   bottom: 0.6rem;
+  left: 0.6rem;
   z-index: 6;
   display: flex;
-  flex-direction: column;
-  width: min(22rem, 100% - 1.2rem);
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.9rem;
   max-height: calc(100% - 1.2rem);
-  padding: 0.5rem 0.75rem 0.5rem;
+  padding: 0.5rem 2.2rem 0.5rem 0.75rem;
   border: 1px solid var(--dgm-border);
   border-left: 4px solid var(--dgm-accent2);
   border-radius: 0.6rem;
@@ -1356,6 +1358,14 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   transform: none;
   visibility: visible;
 }
+.dgm-banner .dgm-banner-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+}
 .dgm-banner .dgm-banner-head {
   display: flex;
   gap: 0.45rem;
@@ -1364,10 +1374,13 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   font-size: 0.78rem;
 }
 .dgm-banner .dgm-banner-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
   flex: none;
   width: 1.5rem;
   height: 1.5rem;
-  margin: -0.15rem -0.35rem 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0.4rem;
@@ -1416,7 +1429,7 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
 .dgm-banner .dgm-banner-text {
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 8.5em;
+  max-height: min(9em, 26vh);
   margin-top: 0.2rem;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1439,32 +1452,29 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   font-size: 0.82em;
 }
 .dgm-banner.is-detailed .dgm-banner-text {
-  max-height: min(18em, 48vh);
+  max-height: min(16em, 40vh);
 }
 .dgm-banner .dgm-controls {
-  display: flex;
+  display: grid;
   flex: none;
-  flex-wrap: wrap;
-  align-items: center;
+  grid-template-columns: repeat(4, 2rem);
   gap: 0.3rem;
-  margin-top: 0.45rem;
-  padding-top: 0.45rem;
-  border-top: 1px solid var(--dgm-border);
+  align-content: start;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--dgm-border);
 }
 .dgm-banner .dgm-controls .dgm-btn {
   width: 2rem;
   height: 2rem;
+  padding: 0;
 }
 .dgm-banner .dgm-controls [data-act=speed] {
-  width: auto;
-  min-width: 2.4rem;
+  font-size: 0.78rem;
 }
 .dgm-banner .dgm-controls .dgm-toggle-mode,
 .dgm-banner .dgm-controls .dgm-toggle-details {
+  grid-column: 1/-1;
   font-size: 0.8rem;
-}
-.dgm-banner .dgm-controls .dgm-toggle-details {
-  margin-left: auto;
 }
 .dgm-banner.is-success {
   border-left-color: #16a34a;
@@ -1486,6 +1496,24 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   right: calc(min(var(--dgm-panel-w, 360px), 94%) + 0.6rem);
 }
 
+.dgm-packet.is-arrived .dgm-packet-glow {
+  animation: dgm-packet-rest 1s ease-in-out infinite alternate;
+}
+
+.dgm-packet.is-arrived .dgm-packet-dir {
+  opacity: 0;
+}
+
+@keyframes dgm-packet-rest {
+  to {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dgm-packet.is-arrived .dgm-packet-glow {
+    animation: none;
+  }
+}
 .dgm.has-panel.is-box-over-panel .dgm-banner {
   right: 0.6rem;
 }
@@ -1551,8 +1579,22 @@ body.dgm-full-open {
   .dgm-banner {
     right: 0.5rem;
     bottom: 0.5rem;
-    width: calc(100% - 1rem);
+    left: 0.5rem;
+    flex-direction: column;
+    gap: 0.4rem;
     font-size: 0.82rem;
+  }
+  .dgm-banner .dgm-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: stretch;
+    padding: 0.4rem 0 0;
+    border-top: 1px solid var(--dgm-border);
+    border-left: 0;
+  }
+  .dgm-banner .dgm-controls .dgm-toggle-details {
+    margin-left: auto;
   }
   .dgm-banner.is-detailed .dgm-banner-text {
     max-height: min(11em, 30vh);
@@ -1990,6 +2032,10 @@ body.dgm-full-open {
   const SPEEDS = [0.5, 1, 2];
   const DWELL_MS = 1600;
   const END_CARD_MS = 5000; // the step card stays this long after a use case's last step
+  // How long a packet rests on its target once it arrives (at 1x), so it can be pressed and inspected.
+  const ARRIVE_MS = 2000;
+  // The narrowest the player box gets beside an open side panel; below it, it sits over the panel's foot.
+  const BOX_MIN_W = 460;
   // Reading time for a step's `detail` while Details is on: about 250 words a minute, at most 25 s.
   const READ_MS_PER_WORD = 240;
   const READ_MAX_MS = 25000;
@@ -2699,6 +2745,8 @@ body.dgm-full-open {
         root.classList.add('is-ready');
         // `zoom_lock: true` locks the zoom the diagram opened at (after the first fit, not before it).
         if (this.data.zoom_lock === true) this.setZoomLock(true);
+        // `drag_lock: true` opens with dragging locked: the view stays where it opened, use cases included.
+        if (this.data.drag_lock === true) this.setDragLock(true);
       });
     }
 
@@ -2820,6 +2868,12 @@ body.dgm-full-open {
       // camera moves of levels, Fit and use cases only pan. Dragging still moves around.
       this.zoomLockBtn = btn('zoom-lock', 'lock-open', 'Lock zoom');
       this.zoomLockBtn.classList.add('dgm-btn-zoomlock');
+      // Drag lock: the view stays where it is. Dragging and the arrow keys stop panning, and use cases
+      // stop moving the camera to each step (the packet travels across the view the reader framed).
+      // Zoom (buttons, Ctrl + scroll, pinch, +/-) and Fit still work.
+      this.dragLockBtn = btn('drag-lock', 'hand', 'Lock dragging');
+      this.dragLockBtn.classList.add('dgm-btn-zoomlock', 'dgm-btn-draglock');
+      this.setDragLock(false);
       this.zoomBtns = [btn('zoom-in', 'plus', 'Zoom in'), btn('zoom-out', 'minus', 'Zoom out')];
       this.setZoomLock(false);
       btn('fit', 'expand', 'Fit to view');
@@ -2829,6 +2883,7 @@ body.dgm-full-open {
         if (!b) return;
         const a = b.dataset.act;
         if (a === 'zoom-lock') this.setZoomLock(!this.zoomLocked);
+        if (a === 'drag-lock') this.setDragLock(!this.dragLocked);
         if (a === 'zoom-in') this.userZoom(1.25);
         if (a === 'zoom-out') this.userZoom(0.8);
         if (a === 'fit') this.fit(true);
@@ -4300,7 +4355,7 @@ body.dgm-full-open {
       const box = this.root.querySelector('.dgm-banner');
       if (!box || !this.panel) return;
       const on = box.classList.contains('is-on') && this.root.classList.contains('has-panel');
-      const tight = on && this.stage.clientWidth - this.panel.offsetWidth < box.offsetWidth + 24;
+      const tight = on && this.stage.clientWidth - this.panel.offsetWidth < BOX_MIN_W;
       this.root.classList.toggle('is-box-over-panel', tight);
       if (tight) this.root.style.setProperty('--dgm-box-h', `${box.offsetHeight + 12}px`);
     }
@@ -4345,6 +4400,17 @@ body.dgm-full-open {
       }
       for (const z of this.zoomBtns || []) z.disabled = on;
       this.root.classList.toggle('is-zoom-locked', on);
+    }
+    setDragLock(on) {
+      this.dragLocked = on;
+      const b = this.dragLockBtn;
+      if (b) {
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const label = on ? 'Dragging locked: the view stays put, use cases do not move it. Click to drag again' : 'Lock dragging: keep the view where it is';
+        b.setAttribute('aria-label', label);
+        b.title = label;
+      }
+      this.root.classList.toggle('is-drag-locked', on);
     }
     // A zoom the reader asked for (buttons, wheel, pinch, keys): refused while the zoom is locked.
     userZoom(f, cx, cy) {
@@ -4525,6 +4591,12 @@ body.dgm-full-open {
         const dx = ev.clientX - last.x;
         const dy = ev.clientY - last.y;
         if (!this.dragged && Math.hypot(dx, dy) < 4) return;
+        if (this.dragLocked) {
+          // Not a click either: the pointer moved, so a release here must not open a panel.
+          if (!this.dragged) this.flashHint('Dragging is locked: unlock it at the foot of the sidebar');
+          this.dragged = true;
+          return;
+        }
         if (!this.dragged) st.setPointerCapture(ev.pointerId);
         this.dragged = true;
         last = { x: ev.clientX, y: ev.clientY };
@@ -4561,6 +4633,7 @@ body.dgm-full-open {
         if (ev.target !== st) return;
         if (moves[ev.key]) {
           ev.preventDefault();
+          if (this.dragLocked) return this.flashHint('Dragging is locked: unlock it at the foot of the sidebar');
           this.cam = { ...this.cam, x: this.cam.x + moves[ev.key][0], y: this.cam.y + moves[ev.key][1] };
           this.applyCam();
         } else if (ev.key === '+' || ev.key === '=') this.userZoom(1.2);
@@ -4751,7 +4824,9 @@ body.dgm-full-open {
           });
           i = j;
         }
-        return out;
+        // A use case keeps at least two steps: if grouping would fold all of it into one card (every hop
+        // inside one closed component, at level 0 say), it plays every step on its own instead.
+        return out.length < 2 && raw.length >= 2 ? raw : out;
       };
       const buildSteps = () => {
         this.rawSteps = rawOf(this.scn, this.mode);
@@ -4793,7 +4868,8 @@ body.dgm-full-open {
       // runs: a click on a use case opens it and plays, and it goes END_CARD_MS after the last step.
       const banner = this.root.querySelector('.dgm-banner');
       if (banner) {
-        banner.insertAdjacentHTML('afterbegin', '<div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-scn"></span><button type="button" class="dgm-banner-close" aria-label="Close the player" title="Stop and close"><i class="fas fa-xmark" aria-hidden="true"></i></button></div><div class="dgm-banner-title"></div><div class="dgm-banner-line" aria-live="polite"></div><div class="dgm-banner-text"></div>');
+        banner.insertAdjacentHTML('afterbegin', '<div class="dgm-banner-main"><div class="dgm-banner-head"><span class="dgm-banner-n"></span><span class="dgm-banner-scn"></span></div><div class="dgm-banner-title"></div><div class="dgm-banner-line" aria-live="polite"></div><div class="dgm-banner-text"></div></div>');
+        banner.insertAdjacentHTML('beforeend', '<button type="button" class="dgm-banner-close" aria-label="Close the player" title="Stop and close"><i class="fas fa-xmark" aria-hidden="true"></i></button>');
         // Clicks, drags and scrolls on the box are not pans or clicks on the canvas.
         for (const t of ['pointerdown', 'click', 'wheel', 'dblclick']) banner.addEventListener(t, (ev) => ev.stopPropagation());
       }
@@ -5068,7 +5144,7 @@ body.dgm-full-open {
           this.updateLevelLabel();
           await this.relayout({});
         }
-        this.animateCam(b.cam);
+        if (!this.dragLocked) this.animateCam(b.cam);
       };
       // Put back the reader's layout (open groups, level, view) but keep the snapshot, so the camera
       // still returns at the end: used when lock mode is turned on in the middle of a use case.
@@ -5216,16 +5292,26 @@ body.dgm-full-open {
               const rad = (ang * Math.PI) / 180;
               const off = Math.abs(Math.cos(rad)) * (ptrs[i]._w / 2) + Math.abs(Math.sin(rad)) * 11 + 3;
               ptrs[i]._dir.setAttribute('transform', `rotate(${ang}) translate(${off},0)`);
-              ptrs[i].style.display = d >= r.m.total ? 'none' : '';
+              ptrs[i].classList.toggle('is-arrived', d >= r.m.total);
               if (!r.rev) r.trail.style.strokeDashoffset = r.m.total - d;
               else r.trail.style.strokeDashoffset = 0;
             });
-            if (t < 1) requestAnimationFrame(tick);
-            else {
+            if (t < 1) return requestAnimationFrame(tick);
+            // Arrived: the packets rest on their targets for ARRIVE_MS, so a reader can press one and
+            // inspect it; then the next hop starts.
+            const t1 = performance.now();
+            const rest = (n) => {
+              if (token !== this.run) {
+                ptrs.forEach((p) => p.remove());
+                unpulse();
+                return resolve('stopped');
+              }
+              if (n - t1 < ARRIVE_MS / this.speed) return requestAnimationFrame(rest);
               ptrs.forEach((p) => p.remove());
               unpulse();
               resolve();
-            }
+            };
+            requestAnimationFrame(rest);
           };
           requestAnimationFrame(tick);
         });
@@ -5311,7 +5397,7 @@ body.dgm-full-open {
         this.setCaption(i);
         if (this.inspecting && !this.panel.hidden) this.inspect(i, 0);
         this.setBanner(x.action || x.title);
-        this.focusStep(ids);
+        if (!this.dragLocked) this.focusStep(ids);
         this.computeLit(x.clear ? -1 : i - 1);
         this.applyLit();
         if (animate && !reduceMotion) {
@@ -5327,8 +5413,9 @@ body.dgm-full-open {
           const at = x.at || (last[last.length - 1] || {}).to || (x.lights || [])[0];
           this.setBanner(x.outcome || x.action || x.title, x.result);
           if (animate && at) {
-            // Glide to where the outcome lands, so the celebration is big enough to see.
-            const p = this.pos.get(this.repOf(at)?.id);
+            // Glide to where the outcome lands, so the celebration is big enough to see (not while
+            // dragging is locked: the view stays where the reader put it).
+            const p = !this.dragLocked && this.pos.get(this.repOf(at)?.id);
             if (p) {
               const W = this.stage.clientWidth;
               const H = this.stage.clientHeight;

@@ -70,7 +70,7 @@ light, dark and phone views: layout at every level with no overlapping component
 and closing it puts every component back),
 the hover card, the component panel, the arrow panel (exchange first, certificates below), view tabs,
 the sidebar (Levels, Views and Use cases menus that fold, the zoom buttons at its foot, folding the
-whole sidebar), zoom and the zoom lock, the start level, the player box (opened by a use case, closed by its button, gone after the end) and the use cases,
+whole sidebar), zoom, the zoom lock and the drag lock, the start level, the player box (opened by a use case, closed by its button, gone after the end) and the use cases,
 fullscreen and no script errors. It exits 1 on any failure.
 
 Read at least `light-desktop-level1.png`, the deepest level, `panel.png` and `card.png`; at level 2
