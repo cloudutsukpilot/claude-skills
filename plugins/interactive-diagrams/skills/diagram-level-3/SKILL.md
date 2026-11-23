@@ -65,8 +65,8 @@ must show their response or be `oneway`).
 
 Run `setup.sh` and `preview.cjs` as in `workflow.md` step 6. Read `light-desktop-level1.png`, the
 deepest level, `panel.png`, `card.png`, `edge-panel.png`, the `view-*.png` files, `step-next.png`
-(a packet on its arrow and the step card), `player-open.png` (the player dropped down from its tab at
-the top of the canvas), `step-details.png` (the same card with Details ticked, a little larger, the
+(a packet on its arrow and the step card), `player-open.png` (the player box in the bottom-right
+corner, controls at its foot), `step-details.png` (the same box with Details ticked, taller, the
 description readable), `step-locked.png` (lock mode: the same packet on the
 reader's layout, nothing opened) and `outcome.png`.
 

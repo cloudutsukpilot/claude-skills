@@ -2,6 +2,23 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.8.0 — 2026-11-23
+
+- The player's controls move into the step card, which becomes a narrow box (about 22rem) in the
+  canvas's bottom-right corner, instead of a drawer hanging from the top of the canvas plus a card across
+  the bottom. Its head has `n/N`, the use case and a close button; then the step's title, the banner line
+  and the description; the controls (play, previous, next, restart, speed, padlock, mode, Details) at its
+  foot. Details makes the same box taller.
+- A click on a use case in the sidebar plays it and opens the box; the box stays while the use case runs
+  (also when paused) and goes 5 s after the last step, or at once with the close button, which stops the
+  use case and restores the reader's layout. A single use case is now listed in the menu too, since a
+  click there is how it starts.
+- While the box is up, the camera frames each step in the room left of it.
+- `build.py` renders the controls inside `.dgm-banner`; the `.dgm-player` drawer and `.dgm-step-n` are
+  gone. `preview.cjs` checks the box: none before a use case, opened and playing on a click, in the
+  bottom-right corner with the controls at its foot, the close button, open while playing, gone 5 s after
+  the end.
+
 ## interactive-diagrams 1.7.2 — 2026-11-23
 
 - Details always changes the step card. Before, it showed `detail` only on steps that had one, so on a
