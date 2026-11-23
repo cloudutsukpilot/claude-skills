@@ -75,7 +75,7 @@ diagram only uses level-1 keys.
 |---|---|
 | `title`, `text` | Required. 2–5 words; 1–2 sentences under ~230 characters, saying what the step does and why |
 | `action` | Required. The banner line, under ~90 characters |
-| `detail` | Optional. 3–10 short lines of Markdown (under ~160 words), shown on the step card, which grows a little for it, when the reader ticks Details |
+| `detail` | 3–10 short lines of Markdown (under ~160 words), shown on the step card, which grows a little for it, when the reader ticks Details. Without it, Details shows `text` and the step's hops (from → to, protocol:port, the arrow's `why`) |
 | `edges` | Arrows that run at the same time (one sender or one receiver) |
 | `path` | Hops one after another; `~id` runs an arrow backwards (the response) |
 | `lights` | Components to light without a packet |
