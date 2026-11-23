@@ -108,4 +108,13 @@ scenarios:
         detail: |
           <Optional, 3 to 10 short lines shown with the Details box: what runs inside this step,>
           <what it checks or decides, and what happens when it refuses.>
+        # Optional, for 1 to 3 hops per use case: what the hop carries, shown by the packet inspector.
+        # Copy it from the code or an API schema (`source`), or mark it `illustrative: true`; placeholders
+        # for every token or key.
+        packets:
+          be_db:
+            summary: "<What this request asks for.>"
+            line: "<SELECT … / POST /v1/… HTTP/1.1>"
+            body: "<the payload, shortened with …>"
+            source: "<path/to/the/code.py>"
       - {title: <Response returns>, action: "<Backend → Frontend → User: …>", text: "<…>", path: [~fe_be, ~u_fe], result: success, outcome: "<What the user got>"}

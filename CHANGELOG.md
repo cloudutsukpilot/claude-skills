@@ -2,6 +2,28 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.9.0 — 2026-11-23
+
+- The use-case pointer is now a packet: a small frame with a header strip and the arrow's protocol on
+  it (`HTTPS`, `gRPC`, `Redis` …), upright so it reads on any arrow, with a chevron showing which way it
+  travels; requests in `accent2`, replies green.
+- Packet inspector. A press on a moving packet, or the new magnifier in the player's controls, pauses
+  the use case and opens the side panel on that step's hops (a tab per hop), layer by layer: Network,
+  Transport (TCP/UDP and ports), Security (TLS/mTLS and its certificates, or why there is none),
+  Application (the protocol's message, then the packet's own first line and headers) and Payload (the
+  body, its size, Copy). The step counts as reached, so Next and Play continue from the next one; the
+  inspector follows the steps until another panel opens.
+- When the canvas has no room for the player box beside an open side panel (a blog post's column, a
+  phone), the box sits over the panel's foot and the panel gets that much room at its bottom, so the
+  controls stay usable and all of the panel's content still scrolls into view.
+- New optional keys: `packets` on a step (`{<edge id> | ~<edge id>: packet}`) and `packet` / `reply` on an
+  arrow, each `{summary, line, headers, body, lang, note, source, illustrative}`. Without them every hop
+  still shows the layers its arrow describes. `validate.py` checks the keys, that each `packets` key is a
+  hop of its step, asks for `source` or `illustrative: true`, and rejects anything that looks like a live
+  token or key. The web-shop example records five packets.
+- `build.py` adds the Inspect button to the controls; `preview.cjs` checks the packet's shape, pressing a
+  moving packet, Inspect, a recorded packet's content and that the inspector follows the next step.
+
 ## interactive-diagrams 1.8.0 — 2026-11-23
 
 - The player's controls move into the step card, which becomes a narrow box (about 22rem) in the
