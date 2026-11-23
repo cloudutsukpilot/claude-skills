@@ -99,21 +99,17 @@ def figure(data, name):
             '<button type="button" class="dgm-collapse" data-act="side-collapse" aria-expanded="true" '
             'aria-label="Hide the sidebar" title="Hide the sidebar"><i class="fas fa-angles-left" aria-hidden="true"></i>'
             '</button></div><div class="dgm-side-menus"></div><div class="dgm-side-foot"></div></nav>')
-    # The player: a tab hanging from the top edge of the canvas (play state and step n/N); hovering or
-    # clicking it drops the controls down. It closes again when a use case starts playing.
-    controls = """<div class="dgm-player" hidden>
-<button type="button" class="dgm-player-handle" aria-expanded="false" aria-label="Show the player" title="Player: play, step, speed, lock, Details"><i class="fas fa-play dgm-player-state" aria-hidden="true"></i><span class="dgm-player-n">Play</span><i class="fas fa-chevron-down dgm-player-chev" aria-hidden="true"></i></button>
-<div class="dgm-controls">
+    # The player's controls sit at the foot of the step card (the box in the canvas's bottom-right
+    # corner), which shows only while a use case runs; the engine adds the card's other parts above them.
+    controls = """<div class="dgm-controls">
 <button type="button" class="dgm-btn dgm-btn-primary" data-act="play" aria-label="Play"><i class="fas fa-play" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="prev" aria-label="Previous step"><i class="fas fa-backward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="next" aria-label="Next step"><i class="fas fa-forward-step" aria-hidden="true"></i></button>
 <button type="button" class="dgm-btn" data-act="restart" aria-label="Restart"><i class="fas fa-rotate-left" aria-hidden="true"></i></button>
-<span class="dgm-step-n" aria-live="polite"></span>
 <button type="button" class="dgm-btn" data-act="speed" aria-label="Speed">1&times;</button>
 <button type="button" class="dgm-btn dgm-btn-lock" data-act="lock" aria-pressed="false" aria-label="Lock layout"><i class="fas fa-lock-open" aria-hidden="true"></i></button>
 <label class="dgm-toggle-mode" hidden><input type="checkbox" data-act="mode"> <span></span></label>
 <label class="dgm-toggle-details" hidden title="Show each step's longer description"><input type="checkbox" data-act="details"> <span>Details</span></label>
-</div>
 </div>""" if has_story else ""
     payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
     map_data = ""
@@ -130,8 +126,7 @@ def figure(data, name):
 <div class="dgm-card" role="tooltip" hidden></div>
 <aside class="dgm-panel" hidden><button type="button" class="dgm-panel-close" aria-label="Close details"><i class="fas fa-xmark" aria-hidden="true"></i></button><div class="dgm-panel-body"></div></aside>
 <p class="dgm-loading">Laying out the diagram…</p>
-<div class="dgm-banner" role="status" aria-live="polite"></div>
-{controls}
+<div class="dgm-banner" role="region" aria-label="Player">{controls}</div>
 </div>
 </div>
 <div class="dgm-legend"></div>
