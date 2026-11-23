@@ -41,9 +41,9 @@ For a map: the region of each component.
 Follow `PLUGIN/reference/structure.md`, `PLUGIN/reference/connections.md`, then
 `PLUGIN/reference/stories.md`: one activity per use case, one action per step, every reply travels
 back (`~id`), every step has `title`, `action` and `text` (1 or 2 sentences: what the step does
-and why), the steps that need explaining have `detail` (3 to 10 lines, shown with the player's
-Details box; for a semi-technical audience, every step, as What happens / Why it matters / How,
-per `stories.md`), and the last step has `result` and `outcome`. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
+and why), every step has `detail` (3 to 10 lines, shown with the player's Details box; a step
+without one only lists its hops there; for a semi-technical audience, as What happens / Why it
+matters / How, per `stories.md`), and the last step has `result` and `outcome`. Add any arrow a real hop needs; never let a packet jump. Set `lock: true` when the use
 cases should play on the start level without opening groups (the reader can toggle the padlock).
 
 ## 3. Write

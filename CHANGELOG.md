@@ -2,6 +2,15 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.7.2 — 2026-11-23
+
+- Details always changes the step card. Before, it showed `detail` only on steps that had one, so on a
+  diagram with a few details (wardens: 9 of 60 steps) ticking it seemed to do nothing. A step without
+  `detail` now shows its `text` and then each hop it makes: from → to, protocol:port and the arrow's
+  `why` (a reply whose request is in the same step is folded into it). The box is offered whenever a
+  step has a `detail` or a hop. `validate.py` now names, per use case, the steps without `detail`, and
+  the docs ask for `detail` on every step. `preview.cjs` checks that Details changes every step's card.
+
 ## interactive-diagrams 1.7.1 — 2026-11-23
 
 - Play runs only the use case the reader picked: after its last step (and the outcome's pause) the player

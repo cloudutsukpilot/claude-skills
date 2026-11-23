@@ -50,13 +50,15 @@ Rules:
   naming the protocol and port where it matters. `text` says what the step does and why, not only
   where the packet goes ("The API asks the provider to charge the card; nothing is saved until it
   answers"), so the step card makes sense without opening anything.
-- **`detail` for the steps that need explaining:** 3 to 10 short lines (under ~160 words) of
+- **`detail` on every step:** 3 to 10 short lines (under ~160 words) of
   Markdown: sentences, `- ` lines for a list, a blank line between paragraphs, `code` for names. It
   shows on the step card instead of `text` when the reader ticks **Details** in the player
   (`details: true` at the top level starts with it ticked; the reader's choice is remembered in their
   browser). Say what happens inside the step that the arrow can't show: which function or check
   runs, what it decides, what happens when it refuses, and what the next step depends on. Don't
-  repeat `text` or the arrow's `why`. Auto-play stays on a step long enough to read its detail
+  repeat `text` or the arrow's `why`. A step without `detail` still changes with Details: the card
+  shows its `text` and then each hop it makes (from → to, protocol:port and the arrow's `why`), so
+  Details never does nothing; `validate.py` lists the steps that rely on that. Auto-play stays on a step long enough to read its detail
   (about 250 words a minute, at most 25 s; the speed button scales it). Give every use case at least
   one; the validator warns when a use case has none.
 - **`detail` for a semi-technical reader** (leadership, product, a new team member), when the

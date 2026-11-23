@@ -494,8 +494,11 @@ def validate(data, path, level=None):
                 if prev and start != prev:
                     E(f"{tag}: path hop `{ref}` starts at `{start}` but the previous hop ended at `{prev}`; a path must be one continuous route")
                 prev = end
-        if steps and not any(st.get("detail") for st in steps):
-            W(f"{name}: no step has `detail`; give the steps that need explaining 3 to 10 lines (shown with the Details box)")
+        missing = [i + 1 for i, st in enumerate(steps) if isinstance(st, dict) and not st.get("detail")]
+        if steps and len(missing) == len(steps):
+            W(f"{name}: no step has `detail`; with the Details box the card only lists each step's hops. Give every step 3 to 10 lines")
+        elif missing:
+            W(f"{name}: steps {', '.join(map(str, missing))} have no `detail`; with the Details box they only list their hops. Give every step 3 to 10 lines")
         # Every request that gets a reply should show the reply travelling back (~id), and a use case
         # should end with its outcome (`result`).
         for mode in mode_ids:
