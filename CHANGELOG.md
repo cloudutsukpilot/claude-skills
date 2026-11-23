@@ -2,6 +2,21 @@
 
 Versions are per plugin and tagged `<plugin>-v<version>`.
 
+## interactive-diagrams 1.10.0 — 2026-11-23
+
+- Lock mode groups steps by the closed components of the reader's layout. Consecutive steps whose every
+  hop starts and ends inside the same closed component (the ones that only pulse it) play as one step:
+  one card, "Inside Backend · 3 steps", lists each step's title and text (each `detail` with Details on);
+  the `n/N` count and the use case's step count in the menu drop to match; the banner line names the
+  step that is moving; the packet inspector has a tab for every hop of the group; auto-play stays long
+  enough to read the list. Opening the component, a deeper level, or unlocking shows every step again,
+  and the player keeps its place. Unlocked, use cases open components and play every step as before.
+- Each hop keeps its own packet (`packets` on its step), so a grouped step's inspector shows them all.
+- `preview.cjs` checks, in lock mode, that a use case with such steps is shorter, that its card lists
+  the grouped steps with the right count, and that unlocking plays every step again.
+- `preview.cjs`: the press on a moving packet hit-tests and presses in the same tick. A click sent a
+  round trip later could land behind the packet, so the check failed about one run in three.
+
 ## interactive-diagrams 1.9.0 — 2026-11-23
 
 - The use-case pointer is now a packet: a small frame with a header strip and the arrow's protocol on

@@ -116,6 +116,15 @@ Rules:
   that component; a hop with both ends inside one closed component, or on an arrow the tab hides,
   pulses the component and the banner says so ("· inside Backend"). Set `lock: true` when the
   use cases read well at the start `level` and opening groups would distract.
+- **Steps grouped by a closed component (lock mode).** Consecutive steps whose every hop starts and
+  ends inside the same closed component (or that only light components inside it) play as one step:
+  one card titled "Inside Backend · 3 steps" lists each step's title and `text` (its `detail` with
+  Details on), the `n/N` count and the use case's step count in the menu drop to match, the banner
+  line names the step that is moving, and the packet inspector has a tab for every hop of the group.
+  A step that also leaves the component, or has `clear`, starts a new step. Opening the component, a
+  deeper level or turning lock off shows the steps one by one again. So write each step for the
+  deepest level: the grouping is the engine's job, and a step's `title` and `text` must still make
+  sense in a list with its neighbours.
 
 ## 2. Geo backdrop (optional)
 

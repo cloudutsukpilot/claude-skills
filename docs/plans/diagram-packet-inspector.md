@@ -1,6 +1,6 @@
 # Plan: packets and the packet inspector for interactive diagrams
 
-**Status (2026-11-23):** In progress. Plugin 1.9.0 in review; the wardens diagram and the blog follow.
+**Status (2026-11-23):** Done. Plugin 1.9.0, the wardens diagram and the blog are merged; tested on the merged builds and the live blog.
 
 ## Goal
 
@@ -19,8 +19,8 @@ is optional and kept to 1 to 3 hops per use case, copied from code (`source`) or
 
 | Step | Status | PRs | Left |
 |---|---|---|---|
-| 1. Plugin engine, validator, docs, example, version 1.9.0 | In progress (2026-11-23) | this branch | Review and merge, tag `interactive-diagrams-v1.9.0` |
-| 2. platform-wardens diagram: packets for the key hops, copied from the code | In progress (2026-11-23) | branch `diagram-packets` | 16 packets on 12 steps in 4 use cases (webhooks, bus, incident start, model call, handoff, Slack, kill switch, MCP); review and merge after step 1 |
-| 3. Blog engine (`sakharams.github.io`) and its `cloudutsuk-diagram` skill | In progress (2026-11-23) | branch `diagram-packet-inspector` | Engine, validator and docs ported; no blog diagram records packets yet (a public one, such as the GA4 page view, could) |
+| 1. Plugin engine, validator, docs, example, version 1.9.0 | Done (2026-11-23) | claude-skills #24 | Tagged `interactive-diagrams-v1.9.0`; installed on the Spark and the homelab PC |
+| 2. platform-wardens diagram: packets for the key hops, copied from the code | Done (2026-11-23) | platform-wardens #373 | 16 packets on 12 steps in 4 use cases (webhooks, bus, incident start, model call, handoff, Slack, kill switch, MCP) |
+| 3. Blog engine (`sakharams.github.io`) and its `cloudutsuk-diagram` skill | Done (2026-11-23) | sakharams.github.io #144 | Deployed; all 8 diagram pages pass on the live site. No blog diagram records packets yet (a public one, such as the GA4 page view, could) |
 
-Waiting on you: reviewing and merging the PRs.
+Waiting on you: nothing.

@@ -72,7 +72,8 @@ deepest level, `panel.png`, `card.png`, `edge-panel.png`, the `view-*.png` files
 corner, controls at its foot), `step-details.png` (the same box with Details ticked, taller, the
 description readable), `step-locked.png` (lock mode: the same packet on the
 reader's layout, nothing opened), `inspector.png` (the packet inspector's layers),
-`inspector-content.png` (a recorded packet's message and payload) and `outcome.png`.
+`inspector-content.png` (a recorded packet's message and payload), `step-grouped.png` (lock mode:
+consecutive steps inside one closed component on one card, when the layout has any) and `outcome.png`.
 
 ## 7. Report
 
