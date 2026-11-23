@@ -1444,6 +1444,14 @@
   right: calc(min(var(--dgm-panel-w, 360px), 94%) + 0.6rem);
 }
 
+.dgm.has-panel.is-box-over-panel .dgm-banner {
+  right: 0.6rem;
+}
+
+.dgm.is-box-over-panel .dgm-panel {
+  padding-bottom: var(--dgm-box-h, 14rem);
+}
+
 .dgm-toggle-mode[hidden],
 .dgm-toggle-details[hidden] {
   display: none;

@@ -1635,6 +1635,16 @@ $dgm-mono: 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
   right: calc(min(var(--dgm-panel-w, 360px), 94%) + 0.6rem);
 }
 
+// No room for both beside each other (a narrow canvas, a phone): the box sits over the panel's foot, and
+// the panel's content gets the box's height of room at its bottom (fitBox in diagram.js).
+.dgm.has-panel.is-box-over-panel .dgm-banner {
+  right: 0.6rem;
+}
+
+.dgm.is-box-over-panel .dgm-panel {
+  padding-bottom: var(--dgm-box-h, 14rem);
+}
+
 
 .dgm-toggle-mode[hidden],
 .dgm-toggle-details[hidden] {

@@ -2230,6 +2230,7 @@
       });
       this.panel.hidden = false;
       this.root.classList.add('has-panel');
+      this.fitBox();
       this.focusOn([n.id], true);
     }
     factsHTML(f) {
@@ -2266,6 +2267,7 @@
       this.playExchange(body);
       this.panel.hidden = false;
       this.root.classList.add('has-panel');
+      this.fitBox();
       this.hideCard();
     }
     // The side panel can be resized: drag its inner edge (left on desktop, top on a phone), use the arrow
@@ -2325,6 +2327,16 @@
       });
       for (const t of ['click', 'wheel']) grip.addEventListener(t, (ev) => ev.stopPropagation());
     }
+    // The player box sits left of an open side panel when the canvas has room for both; otherwise over the
+    // panel's foot, and the panel gets that much room at its bottom, so all of its content scrolls into view.
+    fitBox() {
+      const box = this.root.querySelector('.dgm-banner');
+      if (!box || !this.panel) return;
+      const on = box.classList.contains('is-on') && this.root.classList.contains('has-panel');
+      const tight = on && this.stage.clientWidth - this.panel.offsetWidth < box.offsetWidth + 24;
+      this.root.classList.toggle('is-box-over-panel', tight);
+      if (tight) this.root.style.setProperty('--dgm-box-h', `${box.offsetHeight + 12}px`);
+    }
     // The side panel stops being the packet inspector (it no longer follows the steps).
     endInspect() {
       this.inspecting = false;
@@ -2335,6 +2347,7 @@
       clearTimeout(this.exTimer);
       this.panel.hidden = true;
       this.root.classList.remove('has-panel');
+      this.fitBox();
     }
 
     // ---------------------------------------------------------------- camera
@@ -2589,7 +2602,10 @@
       });
       window.addEventListener('resize', () => {
         clearTimeout(this.resizeTimer);
-        this.resizeTimer = setTimeout(() => this.fit(false), 150);
+        this.resizeTimer = setTimeout(() => {
+          this.fitBox();
+          this.fit(false);
+        }, 150);
       });
     }
 
@@ -2730,6 +2746,7 @@
         clearTimeout(this.endTimer);
         if (banner) banner.classList.toggle('is-on', on);
         this.root.classList.toggle('is-playing-box', on);
+        this.fitBox();
       };
       // Close: stop, put the reader's layout back and hide the box.
       this.closeBox = () => {
@@ -2900,6 +2917,7 @@
         this.panel.hidden = false;
         this.panel.classList.add('is-inspector');
         this.root.classList.add('has-panel');
+        this.fitBox();
         this.hideCard();
         this.inspecting = true;
       };
@@ -2915,6 +2933,7 @@
         part('text').innerHTML = String(long || x.text || '').split(/\n\s*\n/).map((t) => markdown(t)).join('');
         part('text').scrollTop = 0;
         banner.classList.toggle('is-detailed', !!long);
+        this.fitBox();
       };
       // Before the first step: the use case and its summary (the box itself opens and closes on its own).
       this.setIntro = () => {

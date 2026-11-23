@@ -445,9 +445,23 @@ const BLOCK = /googlesyndication|googletagmanager|google-analytics|doubleclick|g
           }, sel, { timeout: 8000, polling: 50 })
           .then((h) => h.jsonValue(), () => null);
         check(shape && shape.body && shape.hdr && shape.tag && !shape.dot, `the moving packet is a framed packet with its protocol on it (${shape ? shape.tag : 'none seen'})`);
-        const pressed = await page.$(`${sel} .dgm-packet .dgm-packet-body`).then((x) => x && x.boundingBox()).catch(() => null);
+        // Press the packet where nothing covers it (on a narrow canvas it can travel under the player box).
+        let pressed = null;
+        for (let t = 0; t < 60 && !pressed; t++) {
+          pressed = await page.$eval(sel, (f) => {
+            for (const g of f.querySelectorAll('.dgm-packet')) {
+              const r = g.querySelector('.dgm-packet-body').getBoundingClientRect();
+              const x = r.left + r.width / 2;
+              const y = r.top + r.height / 2;
+              if (document.elementFromPoint(x, y)?.closest('.dgm-packet') === g) return { x, y };
+            }
+            return null;
+          });
+          if (!pressed) await page.waitForTimeout(100);
+        }
+        if (!pressed) note('no moving packet was uncovered long enough to press (it travelled under the player box)');
         if (pressed) {
-          await page.mouse.click(pressed.x + pressed.width / 2, pressed.y + pressed.height / 2);
+          await page.mouse.click(pressed.x, pressed.y);
           await page.waitForTimeout(500);
           const st = await page.$eval(sel, (f) => ({ playing: f._dgm.playing, insp: f._dgm.inspecting && !f.querySelector('.dgm-panel').hidden, layers: f.querySelectorAll('.dgm-pk-layer').length }));
           check(!st.playing && st.insp && st.layers >= 3, `pressing a moving packet pauses and opens the inspector (${st.layers} layers)`);

@@ -13,6 +13,9 @@ Versions are per plugin and tagged `<plugin>-v<version>`.
   Application (the protocol's message, then the packet's own first line and headers) and Payload (the
   body, its size, Copy). The step counts as reached, so Next and Play continue from the next one; the
   inspector follows the steps until another panel opens.
+- When the canvas has no room for the player box beside an open side panel (a blog post's column, a
+  phone), the box sits over the panel's foot and the panel gets that much room at its bottom, so the
+  controls stay usable and all of the panel's content still scrolls into view.
 - New optional keys: `packets` on a step (`{<edge id> | ~<edge id>: packet}`) and `packet` / `reply` on an
   arrow, each `{summary, line, headers, body, lang, note, source, illustrative}`. Without them every hop
   still shows the layers its arrow describes. `validate.py` checks the keys, that each `packets` key is a

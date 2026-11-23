@@ -1486,6 +1486,14 @@ h1 { color: var(--dgm-host-heading); font-size: 1.35rem; margin: 0.25rem 0 0; }
   right: calc(min(var(--dgm-panel-w, 360px), 94%) + 0.6rem);
 }
 
+.dgm.has-panel.is-box-over-panel .dgm-banner {
+  right: 0.6rem;
+}
+
+.dgm.is-box-over-panel .dgm-panel {
+  padding-bottom: var(--dgm-box-h, 14rem);
+}
+
 .dgm-toggle-mode[hidden],
 .dgm-toggle-details[hidden] {
   display: none;
@@ -4188,6 +4196,7 @@ body.dgm-full-open {
       });
       this.panel.hidden = false;
       this.root.classList.add('has-panel');
+      this.fitBox();
       this.focusOn([n.id], true);
     }
     factsHTML(f) {
@@ -4224,6 +4233,7 @@ body.dgm-full-open {
       this.playExchange(body);
       this.panel.hidden = false;
       this.root.classList.add('has-panel');
+      this.fitBox();
       this.hideCard();
     }
     // The side panel can be resized: drag its inner edge (left on desktop, top on a phone), use the arrow
@@ -4283,6 +4293,16 @@ body.dgm-full-open {
       });
       for (const t of ['click', 'wheel']) grip.addEventListener(t, (ev) => ev.stopPropagation());
     }
+    // The player box sits left of an open side panel when the canvas has room for both; otherwise over the
+    // panel's foot, and the panel gets that much room at its bottom, so all of its content scrolls into view.
+    fitBox() {
+      const box = this.root.querySelector('.dgm-banner');
+      if (!box || !this.panel) return;
+      const on = box.classList.contains('is-on') && this.root.classList.contains('has-panel');
+      const tight = on && this.stage.clientWidth - this.panel.offsetWidth < box.offsetWidth + 24;
+      this.root.classList.toggle('is-box-over-panel', tight);
+      if (tight) this.root.style.setProperty('--dgm-box-h', `${box.offsetHeight + 12}px`);
+    }
     // The side panel stops being the packet inspector (it no longer follows the steps).
     endInspect() {
       this.inspecting = false;
@@ -4293,6 +4313,7 @@ body.dgm-full-open {
       clearTimeout(this.exTimer);
       this.panel.hidden = true;
       this.root.classList.remove('has-panel');
+      this.fitBox();
     }
 
     // ---------------------------------------------------------------- camera
@@ -4547,7 +4568,10 @@ body.dgm-full-open {
       });
       window.addEventListener('resize', () => {
         clearTimeout(this.resizeTimer);
-        this.resizeTimer = setTimeout(() => this.fit(false), 150);
+        this.resizeTimer = setTimeout(() => {
+          this.fitBox();
+          this.fit(false);
+        }, 150);
       });
     }
 
@@ -4688,6 +4712,7 @@ body.dgm-full-open {
         clearTimeout(this.endTimer);
         if (banner) banner.classList.toggle('is-on', on);
         this.root.classList.toggle('is-playing-box', on);
+        this.fitBox();
       };
       // Close: stop, put the reader's layout back and hide the box.
       this.closeBox = () => {
@@ -4858,6 +4883,7 @@ body.dgm-full-open {
         this.panel.hidden = false;
         this.panel.classList.add('is-inspector');
         this.root.classList.add('has-panel');
+        this.fitBox();
         this.hideCard();
         this.inspecting = true;
       };
@@ -4873,6 +4899,7 @@ body.dgm-full-open {
         part('text').innerHTML = String(long || x.text || '').split(/\n\s*\n/).map((t) => markdown(t)).join('');
         part('text').scrollTop = 0;
         banner.classList.toggle('is-detailed', !!long);
+        this.fitBox();
       };
       // Before the first step: the use case and its summary (the box itself opens and closes on its own).
       this.setIntro = () => {
