@@ -18,6 +18,7 @@ diagram only uses level-1 keys.
 | `layout` | 1 | `stable` (default): every component keeps its place when another opens or closes. `auto`: the whole diagram is laid out again on every change (the behaviour before 1.4) |
 | `min_zoom` | 1 | Opening zoom floor (default 0.62), so large diagrams open readable |
 | `zoom_lock` | 1 | `true`: open with the zoom locked at the opening zoom (the padlock at the foot of the sidebar toggles it). While locked, buttons, Ctrl + scroll, pinch and +/- don't zoom, and level changes, Fit and use cases only pan |
+| `drag_lock` | 1 | `true`: open with dragging locked (the hand at the foot of the sidebar toggles it). While locked, dragging and the arrow keys don't pan, and use cases don't move the camera; zoom and Fit still work |
 | `accent`, `accent2` | 1 | `#RRGGBB`: accent = focus, level buttons and tour trail; accent2 = the tour pointer |
 | `nodes` | 1 | Required. The component tree (below) |
 | `edges` | 1 | The arrows (below) |

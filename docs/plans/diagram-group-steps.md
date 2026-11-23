@@ -1,6 +1,6 @@
 # Plan: group a use case's steps by closed component (lock mode)
 
-**Status (2026-11-23):** Done. Plugin 1.10.0, the wardens diagram and the blog are merged; tested on the merged builds and the live blog.
+**Status (2026-11-24):** In progress. 1.11.0 (at least two steps per use case, the full-width player box, packets resting 2 s, drag lock) in review; 1.10.0 is done.
 
 ## Goal
 
@@ -21,5 +21,6 @@ closed component; one card that lists each step. Details in the 1.10.0 entry of 
 | 1. Plugin engine, preview check, docs, version 1.10.0 | Done (2026-11-23) | claude-skills #25 | Tagged `interactive-diagrams-v1.10.0`; installed on the Spark and the homelab PC |
 | 2. platform-wardens diagram rebuilt with 1.10.0 | Done (2026-11-23) | platform-wardens #374 | — |
 | 3. Blog engine (`sakharams.github.io`) and its `cloudutsuk-diagram` skill | Done (2026-11-23) | sakharams.github.io #145 | Deployed |
+| 4. 1.11.0 (the owner's choices, 2026-11-24): a use case keeps at least two steps; the player box spans the canvas with the controls in a 2 x 4 grid; a packet rests 2 s on its target and Play waits; drag lock (pan only) with no auto-focus while it is on. Plugin, wardens rebuild, blog | In progress (2026-11-24) | branches `feat/diagram-group-min-two`, `diagram-group-min-two` | Review and merge, tag `interactive-diagrams-v1.11.0` |
 
-Waiting on you: nothing.
+Waiting on you: reviewing and merging the 1.11.0 PRs.
